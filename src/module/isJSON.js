@@ -1,4 +1,4 @@
-export function isJsonString(str) {
+export function isJSON(str) {
 	if(typeof str === 'string'){
 		try{
 		    obj = JSON.parse(str);

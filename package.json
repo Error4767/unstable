@@ -1,6 +1,6 @@
 {
   "name": "unstable",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "a experimental tool base",
   "main": "entry.js",
   "scripts": {

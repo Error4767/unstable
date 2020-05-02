@@ -4,18 +4,16 @@ import {setCookie, getCookie} from './src/module/cookie.js';
 import {merge} from './src/module/merge.js';
 import {removeInvalidKey} from './src/module/removeInvalidKey.js';
 import {loadJs} from './src/module/loadJs.js';
-import {isJsonString} from './src/module/isJsonString.js';
+import {isJSON} from './src/module/isJSON.js';
 import {drag} from './src/module/drag.js';
 import {readFileAsText, readCsvFile} from './src/module/readFile.js';
 import {removeElement} from './src/module/removeElement.js';
 import {toTime} from './src/module/toTime.js';
 import {deepCopy} from './src/module/deepCopy.js';
-import {animate} from './src/module/animate.js';
 import {axios} from './src/module/axios.js';
 import {Promise} from './src/module/Promise.js';
 import {debounce} from './src/module/debounce.js';
 import {throttle} from './src/module/throttle.js';
-import {quickSort} from './src/module/quickSort.js';
 import {Mvvm} from './src/module/mvvm_Proxy.js';
 import {formatDate} from './src/module/formatDate.js';
 import {
@@ -40,14 +38,13 @@ export {
 	setStyle,
 	getStyle,
 	loadJs,
-	isJsonString,
+	isJSON,
 	removeElement,
 	setCookie,
 	getCookie,
 	removeInvalidKey,
 	deepCopy,
 	drag,
-	animate,
 	readCsvFile,
 	readFileAsText,
 	axios,
@@ -55,7 +52,6 @@ export {
 	Promise,
 	debounce,
 	throttle,
-	quickSort,
 	Mvvm,
 	formatDate,
   Stack,
