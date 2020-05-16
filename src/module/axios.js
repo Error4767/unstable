@@ -77,7 +77,7 @@ class Axios {
 				if(responseType) {
 					xhr.responseType = responseType;
 				}
-				xhr.onreadystatechange = ()=>{
+				xhr.addEventListener('readystatechange', ()=>{
 					if(xhr.readyState === 4){
 						if(/^(2|3)\d{2}$/.test(xhr.status)) {
 							resolve(self.handleResponseData(xhr, config));
@@ -85,7 +85,10 @@ class Axios {
 						  reject('request is error , status = ' + xhr.status);
 	          }
 					}	
-				};
+				});
+				if(typeof config.onUploadProgress === 'function') {
+					xhr.upload.addEventListener('progress', config.onUploadProgress);
+				}
 				xhr.open(method,url,true);
 				//set headers
 				self.setRequestHeaders(xhr, headers);
@@ -145,7 +148,9 @@ class Axios {
 			config.data = null;
 			return;
 		}else{
-			config.data = JSON.stringify(data);
+			if(Object.prototype.toString.call(config.data) !== '[object File]') {
+				config.data = JSON.stringify(data);
+			}
 		}
 	}
 	setCache(config = {}){
