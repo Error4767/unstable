@@ -149,7 +149,9 @@ class Axios {
 			return;
 		}else{
 			if(Object.prototype.toString.call(config.data) !== '[object File]') {
-				config.data = JSON.stringify(data);
+				if(typeof config.data === 'object') {
+					config.data = JSON.stringify(data);
+				}
 			}
 		}
 	}
