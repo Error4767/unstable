@@ -1,4 +1,4 @@
-export function throttle(fn, interval = 50, self) {
+export function throttle(fn, interval = 50, self = null) {
   let lastTime = null;
   return function(...args) {
     let currentTime = new Date();
