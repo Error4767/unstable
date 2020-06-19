@@ -7,4 +7,6 @@ const once = (fn, self = null)=> {
     }
   }
 }
-export default once;
+export {
+  once
+};
