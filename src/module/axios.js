@@ -66,7 +66,8 @@ class Axios {
 					data = null,
 					headers = null,
 					cancelToken = null,
-					responseType = null
+					responseType = null,
+					withCredentials 
 				} = config;
 				url = baseURL + url;
 				if(XMLHttpRequest){
@@ -74,9 +75,13 @@ class Axios {
 				}else{
 					var xhr = new ActiveXObject();
 				}
-				if(responseType) {
-					xhr.responseType = responseType;
-				}
+				//是否发送cookie
+				withCredentials ? xhr.withCredentials = true : null;
+
+				//设置返回数据类型
+				responseType ? xhr.responseType = responseType : null;
+
+				//请求回调
 				xhr.addEventListener('readystatechange', ()=>{
 					if(xhr.readyState === 4){
 						if(/^(2|3)\d{2}$/.test(xhr.status)) {
@@ -86,13 +91,15 @@ class Axios {
 	          }
 					}	
 				});
+				//如果有，添加上传进度事件回调
 				if(typeof config.onUploadProgress === 'function') {
 					xhr.upload.addEventListener('progress', config.onUploadProgress);
 				}
 				xhr.open(method,url,true);
-				//set headers
+				//设置请求头
 				self.setRequestHeaders(xhr, headers);
 				xhr.send(data);
+				//如果需要，取消请求的相关操作
 				if(typeof cancelToken === 'function') {
 					cancelToken((message)=> {
 						reject(message);
@@ -109,7 +116,7 @@ class Axios {
 				return Promise.reject(err);
 			}
 		}, self.interceptors.response.errorInterceptor);
-
+		
 		return promise;
 	}
 	handleRequestData(config = {}){
