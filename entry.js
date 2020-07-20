@@ -17,6 +17,10 @@ import { throttle } from './src/module/throttle.js';
 import { Mvvm } from './src/module/mvvm_Proxy.js';
 import { formatDate } from './src/module/formatDate.js';
 import { once } from './src/module/once.js';
+
+//实验性的
+import compilerXMLToVNode from './src/module/compilerXML.ToVNode.js';
+
 import {
 	Stack,
 	Queue,
@@ -65,5 +69,6 @@ export {
 	BinarySearchTree,
 	RedBlackTree,
 	Graph,
-	once
+	once,
+	compilerXMLToVNode
 }
