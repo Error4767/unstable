@@ -7,12 +7,6 @@ const STRING_SYMBOL = /('|")/;
 const SLASH = /[\\\/]/;
 const UNALLOWED_NAME = /[^A-Za-z0-9_$-]/;// 检测非法名称
 
-function compiler(input) {
-  const tokens = tokenizer(input);
-  const ast = parser(tokens);
-  const newAst = traverser(ast);
-  return newAst;
-}
 function tokenizer(input) {
   let current = 0;
   let tokens = [];
@@ -41,7 +35,7 @@ function tokenizer(input) {
       let value = '';
       // 跳过双引号(自身)
       char = input[++current];
-      while (char !== symbol) {
+      while (char && char !== symbol) {
         value += char;
         char = input[++current];
       }
@@ -63,7 +57,7 @@ function tokenizer(input) {
       // 记录尖括号数量几个开始对应几个结束，防止内部尖括号结束外部标签
       let parenNumber = 0;
       let value = '';
-      while (!WHITE_SPACE.test(char) && CHAR.test(char)) {
+      while (char && !WHITE_SPACE.test(char) && CHAR.test(char)) {
         if (PAREN.test(char)) {
           if (parenNumber <= 0) {
             break;
@@ -137,9 +131,9 @@ function parseToNode(tokens) {
         }
     } else if (token.type === 'paren' && token.value === '<') {
       let tag = {
-        type: 'tag',
         attrs: []
       }
+
       token = tokens[++current];
       while (token && token.value !== '>') {
         const node = parse();
@@ -151,20 +145,33 @@ function parseToNode(tokens) {
         return SLASH.test(token.value[0]);
       });
 
-      if (isEndTag) {
-        return {
-          type: 'TagLiteral',
-          value: 'end',
-          nodeName: tag.attrs[0].value.replace('/', '')
-        };
-      } else {
-        return {
-          type: 'TagLiteral',
-          value: 'start',
-          nodeName: tag.attrs[0].value,
-          attrs: tag.attrs.slice(1)
-        };
+      //设定返回值
+      //设置类型
+      if(tag.attrs[0]) {
+        if(tag.attrs[0].value !== '/') {
+          tag.type = 'TagLiteral';
+        }else {
+          tag.type = 'Fragument';
+        }
+        isEndTag ? tag.value = 'end' : tag.value = 'start';
+      }else {
+        tag.type = 'Fragument';
+        tag.value = 'start';
       }
+      //如果不是文档碎片，则可以有名字和属性
+      if(tag.type !== 'Fragument') {
+        if(isEndTag) {
+          tag.nodeName = tag.attrs[0].value.replace('/', '');
+        }else {
+          tag.nodeName = tag.attrs[0].value;
+          tag.attrs = tag.attrs.slice(1);
+        }
+      }else {
+        //delete tag.attrs;
+        tag.nodeName = '';
+      }
+
+      return tag;
     } else {
       current++;
       return;
@@ -189,7 +196,7 @@ function parseToTree(nodes) {
   }
   function parse() {
     let node = nodes[current];
-    if (node && node.type === 'TagLiteral' && node.value === 'start') {
+    if (node && (node.type === 'TagLiteral' || node.type === 'Fragument') && node.value === 'start') {
       // 记录当前元素，便于后面添加node
       const parent = node;
       parent.children = [];
@@ -201,7 +208,7 @@ function parseToTree(nodes) {
         // 获取元素，如果是元素则继续向下分析
         node = parse();
         // 遇到结束标签终结本次while
-        if (node.type === 'TagLiteral' && node.value === 'end') {
+        if ((node.type === 'TagLiteral' || node.type === 'Fragument') && node.value === 'end') {
           break;
         }
         node && parent.children.push(node);
@@ -227,12 +234,30 @@ function traverser(ast) {
       traverser(node);
     });
   }
-  ast.type = ast.type.replace('Literal', '')
+  ast.type = ast.type.replace('Literal', '');
+  //因为已经解析完毕标签了，所以删除value属性，不再需要标记start和end
+  if(ast.type === 'Tag' || ast.type === 'Fragument') {
+    delete ast.value
+  }
   return ast;
 }
 
 function parser(tokens) {
   return parseToTree(parseToNode(tokens));
+}
+
+function compiler(input) {
+  try {
+    const tokens = tokenizer(input);
+    const ast = parser(tokens);
+    const newAst = traverser(ast);
+    return newAst;
+  } catch(err) {
+    return {
+      type: 'error',
+      error: err.toString()
+    }
+  }
 }
 
 export default compiler;
