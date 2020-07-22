@@ -190,6 +190,8 @@ function parseToNode(tokens) {
       //如果是无法识别的标签添加了结束符号/，则视为自定义节点单标签
       if(tag.attrs[tag.attrs.length - 1] && tag.attrs[tag.attrs.length - 1].value === '/') {
         tag.clousure = true;
+        //删除闭合符/
+        tag.attrs = tag.attrs.filter(v=> v.value !== '/');
       }
 
       return tag;
