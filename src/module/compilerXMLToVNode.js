@@ -310,4 +310,4 @@ function compiler(input) {
   }
 }
 
-//export default compiler;
+export default compiler;
