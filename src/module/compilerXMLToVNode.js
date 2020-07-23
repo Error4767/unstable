@@ -23,26 +23,12 @@ function tokenizer(input) {
   let current = 0;
   let tokens = [];
   const length = input.length;
+  //在标签内部会强制引号才作为字符,标签外部则都为字符
+  let inTag = false;
   while (current < length) {
     let char = input[current];
-    if (char === '<') {
-      tokens.push({
-        type: 'paren',
-        value: char
-      });
-    } else if (char === '>') {
-      tokens.push({
-        type: 'paren',
-        value: char
-      });
-    } else if (char === '=') {
-      tokens.push({
-        type: 'equal',
-        value: char
-      });
-    } else if (WHITE_SPACE.test(char)) {
-
-    } else if (STRING_SYMBOL.test(char)) {
+    //解析字符串
+    const parseStringToken = () => {
       let symbol = char;
       let value = '';
       // 跳过双引号(自身)
@@ -51,45 +37,100 @@ function tokenizer(input) {
         value += char;
         char = input[++current];
       }
-      tokens.push({
-        type: 'string',
-        value
-      });
-    } else if (NUMBERS.test(char)) {
+      return value;
+    }
+    //解析html中字符
+    const parseStringTokenOutTag = () => {
       let value = '';
-      while (NUMBERS.test(char)) {
+      while (char && char !== '<') {
         value += char;
         char = input[++current];
       }
+      char = input[current--];
+      value = value.replace(/\r\n/g, '');
+      return value;
+    }
+
+    if (char === '<') {
       tokens.push({
-        type: 'number',
-        value
+        type: 'paren',
+        value: char
       });
-    } else if (CHAR.test(char)) {
-      // 记录尖括号数量几个开始对应几个结束，防止内部尖括号结束外部标签
-      let parenNumber = 0;
-      let value = '';
-      while (char && !WHITE_SPACE.test(char) && CHAR.test(char)) {
-        if (PAREN.test(char)) {
-          if (parenNumber <= 0) {
-            break;
+      inTag = true;
+    } else if (char === '>') {
+      tokens.push({
+        type: 'paren',
+        value: char
+      });
+      inTag = false;
+    }else {
+      if (inTag) {
+        if (char === '=') {
+          tokens.push({
+            type: 'equal',
+            value: char
+          });
+        } else if (WHITE_SPACE.test(char)) {
+
+        } else if (STRING_SYMBOL.test(char)) {
+          tokens.push({
+            type: 'string',
+            value: parseStringToken()
+          });
+        } else if (NUMBERS.test(char)) {
+          let value = '';
+          while (char && NUMBERS.test(char)) {
+            value += char;
+            char = input[++current];
           }
-          char === '<' && parenNumber++;
-          char === '>' && parenNumber--;
+          // 减去 以免下面在++就是加了2
+          current--;
+          tokens.push({
+            type: 'number',
+            value
+          });
+        } else if (CHAR.test(char)) {
+          // 记录尖括号数量几个开始对应几个结束，防止内部尖括号结束外部标签
+          let parenNumber = 0;
+          let value = '';
+          while (char && !WHITE_SPACE.test(char) && CHAR.test(char)) {
+            //检测到引号就当成连续字符，可以含有空格，直到下个引号
+            if (STRING_SYMBOL.test(char)) {
+              value += parseStringToken();
+              char = input[++current];
+              continue;
+            }
+            if (PAREN.test(char)) {
+              if (parenNumber <= 0) {
+                break;
+              }
+              char === '<' && parenNumber++;
+              char === '>' && parenNumber--;
+            }
+            value += char;
+            char = input[++current];
+          }
+          // 减去 以免下面在++就是加了2
+          current--;
+          const token = !UNALLOWED_NAME.test(value) ? {
+            type: 'name',
+            value
+          } : {
+              type: 'expression',
+              value
+            };
+          tokens.push(token);
         }
-        value += char;
-        char = input[++current];
+      } else {
+        //处理标签尖括号外部的情况
+        const value = parseStringTokenOutTag().trim();
+        value.replace(/[\↵\r\n\s]/g, '').length > 0 ?
+        tokens.push({
+          type: 'string',
+          //替换换行，多个空格缩短为1个
+          value: value.replace(/[\↵\r\n]/g, '').replace(/\s+/g, ' ')
+        }) : null;
       }
-      // 减去 以免下面在++就是加了2
-      current--;
-      const token = !UNALLOWED_NAME.test(value) ? {
-        type: 'name',
-        value
-      } : {
-          type: 'expression',
-          value
-        };
-      tokens.push(token);
     }
     current++;
   }
@@ -133,9 +174,6 @@ function parseToNode(tokens) {
       // 长度大于1视为表达式，否则视为名字，
       if (contents.length > 1) {
         let value = contents[1];
-        //如果包裹引号，视为字符，去掉引号
-        const isString = STRING_SYMBOL.test(contents[1][0]) && STRING_SYMBOL.test(contents[1][contents[1].length - 1]);
-        isString ? value = contents[1].replace(/('|")/g, '') : null;
         return {
           type: 'ExpressionLiteral',
           value: {
