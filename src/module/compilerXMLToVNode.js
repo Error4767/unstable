@@ -131,16 +131,24 @@ function parseToNode(tokens) {
       // 根据等于号分割表达式
       const contents = token.value.split('=');
       // 长度大于1视为表达式，否则视为名字，
-      return contents.length > 1 ? {
-        type: 'ExpressionLiteral',
-        value: {
-          key: contents[0],
-          value: contents[1]
+      if (contents.length > 1) {
+        let value = contents[1];
+        //如果包裹引号，视为字符，去掉引号
+        const isString = STRING_SYMBOL.test(contents[1][0]) && STRING_SYMBOL.test(contents[1][contents[1].length - 1]);
+        isString ? value = contents[1].replace(/('|")/g, '') : null;
+        return {
+          type: 'ExpressionLiteral',
+          value: {
+            key: contents[0],
+            value
+          }
         }
-      } : {
+      } else {
+        return {
           type: 'NameLiteral',
           value: token.value
         }
+      }
     } else if (token.type === 'paren' && token.value === '<') {
       let tag = {
         attrs: []
@@ -185,13 +193,13 @@ function parseToNode(tokens) {
       }
 
       //如果是自闭合标签就删除所有的/
-      isAutoClousureTag(tag.nodeName) ? tag.attrs = tag.attrs.filter(v=> v.value !== '/') : null;
+      isAutoClousureTag(tag.nodeName) ? tag.attrs = tag.attrs.filter(v => v.value !== '/') : null;
 
       //如果是无法识别的标签添加了结束符号/，则视为自定义节点单标签
-      if(tag.attrs[tag.attrs.length - 1] && tag.attrs[tag.attrs.length - 1].value === '/') {
+      if (tag.attrs[tag.attrs.length - 1] && tag.attrs[tag.attrs.length - 1].value === '/') {
         tag.clousure = true;
         //删除闭合符/
-        tag.attrs = tag.attrs.filter(v=> v.value !== '/');
+        tag.attrs = tag.attrs.filter(v => v.value !== '/');
       }
 
       return tag;
@@ -270,7 +278,7 @@ function traverser(ast) {
   //删除节点类型中的Literal
   ast.type = ast.type.replace('Literal', '');
   //删除属性中的Literal
-  ast.attrs && ast.attrs.length > 0 ? ast.attrs = ast.attrs.map(v=> {
+  ast.attrs && ast.attrs.length > 0 ? ast.attrs = ast.attrs.map(v => {
     v.type = v.type.replace('Literal', '');
     return v;
   }) : null;
@@ -302,4 +310,4 @@ function compiler(input) {
   }
 }
 
-export default compiler;
+//export default compiler;
