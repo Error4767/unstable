@@ -7,7 +7,10 @@ const STRING_SYMBOL = /('|")/;
 const SLASH = /[\\\/]/;
 const UNALLOWED_NAME = /[^A-Za-z0-9_$-]/;// 检测非法名称
 
-//检测是否是自闭合标签
+// 匹配注释
+const XML_COMMENTS = /<!--(.)*-->/igs;
+
+// 检测是否是自闭合标签
 const autoClousureTags = [
   'meta',
   'link',
@@ -19,15 +22,23 @@ const autoClousureTags = [
 ];
 const isAutoClousureTag = (tag) => autoClousureTags.includes(tag);
 
+// 前置转换
+function preTransform(input) {
+  let result;
+  // 删除所有的注释
+  result = input.replace(XML_COMMENTS, '');
+  return result;
+}
+
 function tokenizer(input) {
   let current = 0;
   let tokens = [];
   const length = input.length;
-  //在标签内部会强制引号才作为字符,标签外部则都为字符
+  // 在标签内部会强制引号才作为字符,标签外部则都为字符
   let inTag = false;
   while (current < length) {
     let char = input[current];
-    //解析字符串
+    // 解析字符串
     const parseStringToken = () => {
       let symbol = char;
       let value = '';
@@ -39,7 +50,7 @@ function tokenizer(input) {
       }
       return value;
     }
-    //解析html中字符
+    // 解析html中字符
     const parseStringTokenOutTag = () => {
       let value = '';
       while (char && char !== '<') {
@@ -94,7 +105,7 @@ function tokenizer(input) {
           let parenNumber = 0;
           let value = '';
           while (char && !WHITE_SPACE.test(char) && CHAR.test(char)) {
-            //检测到引号就当成连续字符，可以含有空格，直到下个引号
+            // 检测到引号就当成连续字符，可以含有空格，直到下个引号
             if (STRING_SYMBOL.test(char)) {
               value += parseStringToken();
               char = input[++current];
@@ -122,12 +133,12 @@ function tokenizer(input) {
           tokens.push(token);
         }
       } else {
-        //处理标签尖括号外部的情况
+        // 处理标签尖括号外部的情况
         const value = parseStringTokenOutTag().trim();
         value.replace(/[\↵\r\n\s]/g, '').length > 0 ?
         tokens.push({
           type: 'string',
-          //替换换行，多个空格缩短为1个
+          // 替换换行，多个空格缩短为1个
           value: value.replace(/[\↵\r\n]/g, '').replace(/\s+/g, ' ')
         }) : null;
       }
@@ -226,17 +237,17 @@ function parseToNode(tokens) {
           tag.attrs = tag.attrs.slice(1);
         }
       } else {
-        //delete tag.attrs;
+        // delete tag.attrs;
         tag.nodeName = '';
       }
 
-      //如果是自闭合标签就删除所有的/
+      // 如果是自闭合标签就删除所有的/
       isAutoClousureTag(tag.nodeName) ? tag.attrs = tag.attrs.filter(v => v.value !== '/') : null;
 
-      //如果是无法识别的标签添加了结束符号/，则视为自定义节点单标签
+      // 如果是无法识别的标签添加了结束符号/，则视为自定义节点单标签
       if (tag.attrs[tag.attrs.length - 1] && tag.attrs[tag.attrs.length - 1].value === '/') {
         tag.clousure = true;
-        //删除闭合符/
+        // 删除闭合符/
         tag.attrs = tag.attrs.filter(v => v.value !== '/');
       }
 
@@ -313,17 +324,17 @@ function traverser(ast) {
       traverser(node);
     });
   }
-  //删除节点类型中的Literal
+  // 删除节点类型中的Literal
   ast.type = ast.type.replace('Literal', '');
-  //删除属性中的Literal
+  // 删除属性中的Literal
   ast.attrs && ast.attrs.length > 0 ? ast.attrs = ast.attrs.map(v => {
     v.type = v.type.replace('Literal', '');
     return v;
   }) : null;
-  //因为已经解析完毕标签了，所以删除一些东西
-  //删除标签结束标识
+  // 因为已经解析完毕标签了，所以删除一些东西
+  // 删除标签结束标识
   ast.clousure ? delete ast.clousure : null;
-  //删除value属性，不再需要标记start和end
+  // 删除value属性，不再需要标记start和end
   if (ast.type === 'Tag' || ast.type === 'Fragument') {
     delete ast.value
   }
@@ -336,7 +347,9 @@ function parser(tokens) {
 
 function compiler(input) {
   try {
-    const tokens = tokenizer(input);
+    // 去除注释，获得有用的数据部分
+    const usefulData = preTransform(input);
+    const tokens = tokenizer(usefulData);
     const ast = parser(tokens);
     const newAst = traverser(ast);
     return newAst;
