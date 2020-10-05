@@ -345,7 +345,7 @@ function parser(tokens) {
   return parseToTree(parseToNode(tokens));
 }
 
-function compiler(input) {
+function compilerXMLToVNode(input) {
   try {
     // 去除注释，获得有用的数据部分
     const usefulData = preTransform(input);
@@ -361,4 +361,6 @@ function compiler(input) {
   }
 }
 
-export default compiler;
+export {
+  compilerXMLToVNode
+};
