@@ -326,11 +326,23 @@ function traverser(ast) {
   }
   // 删除节点类型中的Literal
   ast.type = ast.type.replace('Literal', '');
-  // 删除属性中的Literal
-  ast.attrs && ast.attrs.length > 0 ? ast.attrs = ast.attrs.map(v => {
-    v.type = v.type.replace('Literal', '');
-    return v;
-  }) : null;
+  if(ast.attrs && ast.attrs.length > 0) {
+    // 把ast.attrs转换为一个对象
+    const attrs = ast.attrs;
+    ast.attrs = {};
+    attrs.forEach(v => {
+      // 删除属性中的Literal
+      v.type = v.type.replace('Literal', '');
+      // 如果没有赋值则默认设置为true，赋值了就直接赋值
+      if(v.type === 'Expression') {
+        ast.attrs[v.value.key] = v.value.value;
+      }
+      else if (v.type === 'Name') {
+        ast.attrs[v.value] = true;
+      }
+      return v;
+    });
+  }
   // 因为已经解析完毕标签了，所以删除一些东西
   // 删除标签结束标识
   ast.clousure ? delete ast.clousure : null;
