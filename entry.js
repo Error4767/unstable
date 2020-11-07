@@ -24,6 +24,7 @@ export {
 	reactive,
 	watch,
 	watchEffect,
+	computed,
 	isReactiveObject,
 	Watcher
 } from './src/module/reactivity/reactivity.js'
