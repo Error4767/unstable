@@ -19,6 +19,16 @@ export { formatDate } from './src/module/formatDate.js';
 export { once } from './src/module/once.js';
 export { typeOf } from './src/module/typeOf.js';
 
+// reactivity
+export {
+	reactive,
+	watch,
+	watchEffect,
+	computed,
+	isReactiveObject,
+	Watcher
+} from './src/module/reactivity/reactivity.js'
+
 //实验性的
 export { compilerXMLToVNode } from './src/module/compilerXML.js';
 

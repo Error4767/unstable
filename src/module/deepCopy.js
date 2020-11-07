@@ -92,6 +92,8 @@ const copyRegExp = (target)=> {
 	let {source, flags} = target;
 	return new RegExp(source, flags);
 }
+
+// 由于function不可复制，该函数暂时弃用
 const copyFunction = (target)=> {
 	if(typeof target === 'function') {
 		if(!target.prototype){
@@ -116,6 +118,7 @@ const copyFunction = (target)=> {
 		throw new TypeError('target is a not function');
 	}
 }
+
 const deepCopy = (target, weakmap = new WeakMap())=> {
 	if(!isObject(target)) {
 		return target;
@@ -161,7 +164,7 @@ const deepCopy = (target, weakmap = new WeakMap())=> {
 			copy = copyRegExp(target);
 			break;
 		case functionType:
-			copy = copyFunction(target);
+			copy = target;
 			break;
 		default:
 			copy = new Ctor(target);
