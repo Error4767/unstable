@@ -29,8 +29,7 @@ export {
 	Watcher
 } from './src/module/reactivity/reactivity.js'
 
-//实验性的
-export { compilerXMLToVNode } from './src/module/compilerXML.js';
+export { compilerXMLToAST } from './src/module/compilerXML.js';
 
 export {
 	Stack,
