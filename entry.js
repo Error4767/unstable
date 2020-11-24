@@ -18,6 +18,7 @@ export { Mvvm } from './src/module/mvvm_Proxy.js';
 export { formatDate } from './src/module/formatDate.js';
 export { once } from './src/module/once.js';
 export { typeOf } from './src/module/typeOf.js';
+export { isObject } from './src/module/isObject.js';
 
 // reactivity
 export {

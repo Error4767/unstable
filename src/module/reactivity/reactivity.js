@@ -1,12 +1,5 @@
-function isObject(obj) {
-  return typeof obj === 'object' && obj !== null;
-}
-
-function typeOf(value) {
-  let type = Object.prototype.toString.call(value, null);
-  type = type.substring(8, type.indexOf(']'));
-  return type;
-}
+import { typeOf } from '../typeOf.js';
+import { isObject } from '../isObject.js';
 
 function isReactiveObject(obj) {
   return obj instanceof Proxy;
@@ -34,22 +27,37 @@ class Watcher {
   }
 }
 
+const depMaps = new WeakMap();
+
+// 获取map的函数,从depMaps中
+function getMap(target) {
+  let map;
+  // 存在map直接获取不存在就创建
+  if (depMaps.has(target)) {
+    map = depMaps.get(target);
+  } else {
+    map = new Map();
+    depMaps.set(target, map);
+  }
+  return map;
+}
+
 // 默认的获取依赖方法
 const defaultGetDep = () => Dep.target;
 
-// 该数组暂存所有的尾部回调,在reactive初始化或修改属性值后运行
+// 该数组暂存所有的尾部回调,在reactive初始化或修改属性值后运行,此文件中用于在最后初始化计算属性
 let tailCallbacks = [];
 
 function runTailCallbacks() {
   // 调用尾部回调
-  tailCallbacks && tailCallbacks.forEach(cb=> cb());
+  tailCallbacks && tailCallbacks.forEach(cb => cb());
   // 清空尾部回调队列
   tailCallbacks = [];
 }
 
 // 如果是特殊类型，返回对应规则的值，否则原值返回
 function specicalTypeGetValue(value) {
-  if(typeof value === 'function' && value.type === 'computed') {
+  if (typeof value === 'function' && value.type === 'computed') {
     // 获取函数上缓存的value值
     return value.value;
   }
@@ -57,10 +65,11 @@ function specicalTypeGetValue(value) {
 }
 
 // map中根据key存放一些dep
-function createGetters(getWatcher, map = new Map()) {
+function createGetters(getWatcher) {
   return function (target, key) {
     // getWatcher获取观察者(如果有的话),并放入map中
     const dep = typeof getWatcher === 'function' && getWatcher(target, key);
+    let map = getMap(target);
     // 添加依赖到map中
     if (dep) {
       if (map.has(key)) {
@@ -76,11 +85,13 @@ function createGetters(getWatcher, map = new Map()) {
   }
 }
 
-function createSetters(transform = v => v, map = new Map()) {
+function createSetters(transform = v => v) {
+  // transform是转换设置的新数据的函数
   return function (target, key, value) {
     const oldValue = Reflect.get(target, key);
     if (oldValue !== value) {
       const newValue = transform(value);
+      let map = getMap(target);
       Reflect.set(target, key, newValue);
       map.get(key) && map.get(key).notify(oldValue, newValue);
       runTailCallbacks();
@@ -90,12 +101,11 @@ function createSetters(transform = v => v, map = new Map()) {
 
 // 创建一个handler，getWatcher用于在每次get的时候收集依赖（如果有的话）
 function createHandler(getWatcher) {
-  const map = new Map();
   return {
-    get: createGetters(getWatcher, map),
-    set: createSetters((v) => {
+    get: createGetters(getWatcher),
+    set: createSetters((v) => {// 新数据转换为响应式代理
       return isObject(v) ? createReactiveObject(v, createHandler(getWatcher)) : v;
-    }, map)
+    })
   }
 }
 
@@ -142,13 +152,13 @@ function watch(collectDep, hook, options = {}) {
   setDepTarget(new Watcher(hook), collectDep);
 }
 
-function watchEffect(hook, options) {
-  return watch(hook, hook, options);
+function watchEffect(effect, options) {
+  return watch(effect, effect, options);
 }
 
 function computed(getter, options) {
   typeof getter === 'function' && (getter.type = 'computed');
-  tailCallbacks.push(()=> watchEffect(()=> (getter.value = getter()), options));
+  tailCallbacks.push(() => watchEffect(() => (getter.value = getter()), options));
   return getter;
 }
 
