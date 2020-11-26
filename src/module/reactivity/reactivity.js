@@ -92,10 +92,11 @@ function createSetters(transform = v => v) {
     if (oldValue !== value) {
       const newValue = transform(value);
       let map = getMap(target);
-      Reflect.set(target, key, newValue);
       map.get(key) && map.get(key).notify(oldValue, newValue);
       runTailCallbacks();
+      return Reflect.set(target, key, newValue);
     }
+    return true;
   }
 }
 
