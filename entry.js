@@ -22,13 +22,14 @@ export { isObject } from './src/module/isObject.js';
 
 // reactivity
 export {
+	ref,
+	isRef,
 	reactive,
+	isReactiveObject,
 	watch,
 	watchEffect,
 	computed,
-	isReactiveObject,
-	Watcher
-} from './src/module/reactivity/reactivity.js'
+} from './src/module/reactivity/reactivity.js';
 
 export { compilerXMLToAST } from './src/module/compilerXML.js';
 
