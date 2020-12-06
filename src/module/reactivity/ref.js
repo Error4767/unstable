@@ -1,11 +1,12 @@
 import { isObject } from './utils.js';
 
-import { defaultDepend, track, trigger } from './public.js';
+import { defaultDepend, track, trigger } from './depend.js';
 
 // ref标识
 const refTypeName = '__isRef';
 
-function ref(initialValue) {
+function ref(initialValue, isReadonly = false, warnMessage) {
+  // isReadonly是定义是否只读属性，warnMessage指给只读属性赋值的时候的警告文本
   let value = initialValue;
 
   const refObject = {
@@ -15,10 +16,14 @@ function ref(initialValue) {
       return value;
     },
     set value(newValue) {
-      if (value !== newValue) {
+      if(isReadonly) {
+        console.warn(warnMessage);
+        return false;
+      }else if (value !== newValue) {
         const oldValue = value;
         value = newValue;
         trigger(this, 'value', oldValue, newValue);
+        return true;
       }
     }
   }

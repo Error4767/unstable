@@ -1,5 +1,3 @@
-import { isRef } from './ref.js';
-
 class Dep {
   constructor() {
     this.subs = [];
@@ -22,9 +20,15 @@ class Watcher {
   }
 }
 
-const depMaps = new WeakMap();
+// 默认的获取依赖方法
+const defaultDepend = () => Dep.target;
 
-window.d = depMaps;
+const defaultSetDepend = (watcher)=> (Dep.target = watcher);
+
+const defaultClearDepend = ()=> (Dep.target = null);
+
+// WeakMap在对象清除时自动释放对应依赖
+const depMaps = new WeakMap();
 
 // 获取map的函数,从depMaps中
 function getMap(target) {
@@ -37,14 +41,6 @@ function getMap(target) {
     depMaps.set(target, map);
   }
   return map;
-}
-
-// 默认的获取依赖方法
-const defaultDepend = () => Dep.target;
-
-// 如果是ref类型，返回其value属性值，否则原值返回
-function getValue(value) {
-  return isRef(value) ? value.value : value;
 }
 
 // 依赖收集
@@ -70,39 +66,12 @@ function trigger(target, key, oldValue, newValue) {
   map.get(key) && map.get(key).notify(oldValue, newValue);
 }
 
-// map中根据key存放一些dep
-function createGetters(depend) {
-  return function (target, key) {
-    track(target, key, depend);
-    let value = getValue(Reflect.get(...arguments));
-    return value;
-  }
-}
-
-function createSetters(transform = v => v) {
-  // transform是转换设置的新数据的函数
-  return function (target, key, value) {
-    const oldValue = Reflect.get(target, key);
-    if (oldValue !== value) {
-      const newValue = transform(value);
-
-      // 操作状态，操作是否成功
-      const operationState = Reflect.set(target, key, newValue);
-      trigger(target, key, oldValue, newValue);
-      
-      return operationState;
-    }
-    return true;
-  }
-}
-
-
 export {
   Dep,
   Watcher,
+  defaultDepend,
+  defaultSetDepend,
+  defaultClearDepend,
   track,
   trigger,
-  createGetters,
-  createSetters,
-  defaultDepend,
 }

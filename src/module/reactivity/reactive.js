@@ -2,9 +2,12 @@ import { isObject, typeOf } from './utils.js';
 
 import {
   defaultDepend,
-  createGetters,
-  createSetters,
-} from './public.js';
+} from './depend.js';
+
+import {
+  createProxyGetter,
+  createProxySetter,
+} from './operators.js';
 
 import { isRef } from './ref.js';
 
@@ -15,8 +18,8 @@ function isReactiveObject(obj) {
 // 创建一个handler，depend用于在每次get的时候收集依赖（如果有的话）
 function createHandler(depend) {
   return {
-    get: createGetters(depend),
-    set: createSetters((v) => {// 新数据转换为响应式代理
+    get: createProxyGetter(depend),
+    set: createProxySetter((v) => {// 新数据转换为响应式代理
       return (isObject(v) && !isRef(v)) ? createReactiveObject(v, createHandler(depend)) : v;
     })
   }

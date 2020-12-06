@@ -8,7 +8,7 @@ function computed(getter, options) {
     watch(() => {
       // 定义ref并且观察依赖
       const value = getter();
-      computedRef = ref(value);
+      computedRef = ref(value, true, 'computed is readonly');
     }, () => (computedRef.value = getter()), options)
     return computedRef;
   } else {

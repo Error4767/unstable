@@ -1,4 +1,4 @@
-export { Dep, Watcher } from './public.js';
+export { Dep, Watcher } from './depend.js';
 
 export { ref, isRef } from './ref.js';
 
