@@ -4,12 +4,9 @@ import { ref } from './ref.js';
 
 function computed(getter, options) {
   if (typeof getter === 'function') {
-    let computedRef;
-    watch(() => {
-      // 定义ref并且观察依赖
-      const value = getter();
-      computedRef = ref(value, true, 'computed is readonly');
-    }, () => (computedRef.value = getter()), options)
+    let computedRef = ref(getter());
+    computedRef.__isComputed = true;
+    watch(getter, () => (computedRef.value = getter()), options)
     return computedRef;
   } else {
     return;

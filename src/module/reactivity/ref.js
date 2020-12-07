@@ -5,7 +5,7 @@ import { defaultDepend, track, trigger } from './depend.js';
 // ref标识
 const refTypeName = '__isRef';
 
-function ref(initialValue, isReadonly = false, warnMessage) {
+function ref(initialValue) {
   // isReadonly是定义是否只读属性，warnMessage指给只读属性赋值的时候的警告文本
   let value = initialValue;
 
@@ -16,10 +16,7 @@ function ref(initialValue, isReadonly = false, warnMessage) {
       return value;
     },
     set value(newValue) {
-      if(isReadonly) {
-        console.warn(warnMessage);
-        return false;
-      }else if (value !== newValue) {
+      if (value !== newValue) {
         const oldValue = value;
         value = newValue;
         trigger(this, 'value', oldValue, newValue);
