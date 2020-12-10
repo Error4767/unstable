@@ -20,12 +20,15 @@ class Watcher {
   }
 }
 
-// 默认的获取依赖方法
-const defaultDepend = () => Dep.target;
+// type: Watcher Instance
+let activeEffect = null;
 
-const defaultSetDepend = (watcher)=> (Dep.target = watcher);
+// 默认的获取/设置/删除依赖方法
+const defaultDepend = () => activeEffect;
 
-const defaultClearDepend = ()=> (Dep.target = null);
+const defaultSetDepend = (watcher)=> (activeEffect = watcher);
+
+const defaultClearDepend = ()=> (activeEffect = null);
 
 // WeakMap在对象清除时自动释放对应依赖
 const depMaps = new WeakMap();
