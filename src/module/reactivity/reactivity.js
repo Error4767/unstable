@@ -8,6 +8,8 @@ export {
   isReactiveObject
 } from './reactive.js';
 
+export { readonly, isReadonly } from './readonly.js';
+
 export { watch } from './watch.js';
 
 export { watchEffect } from './watchEffect.js';

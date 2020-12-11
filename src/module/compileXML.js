@@ -357,7 +357,7 @@ function parser(tokens) {
   return parseToTree(parseToNode(tokens));
 }
 
-function compilerXMLToAST(input) {
+function compileXMLToAST(input) {
   try {
     // 去除注释，获得有用的数据部分
     const usefulData = preTransform(input);
@@ -374,5 +374,5 @@ function compilerXMLToAST(input) {
 }
 
 export {
-  compilerXMLToAST
+  compileXMLToAST
 };

@@ -26,12 +26,14 @@ export {
 	isRef,
 	reactive,
 	isReactiveObject,
+	readonly, 
+	isReadonly,
 	watch,
 	watchEffect,
 	computed,
 } from './src/module/reactivity/reactivity.js';
 
-export { compilerXMLToAST } from './src/module/compilerXML.js';
+export { compileXMLToAST } from './src/module/compileXML.js';
 
 export {
 	Stack,

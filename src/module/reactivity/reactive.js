@@ -7,12 +7,26 @@ import {
 import {
   createProxyGetter,
   createProxySetter,
+  createProxyOwnKeysHandler
 } from './operators.js';
+
+import { isReadonly } from './readonly.js';
 
 import { isRef } from './ref.js';
 
+const reactiveIdentifieAttr = '__isReactive';
+
+// 设置标识
+function setIdentifie(obj) {
+  Object.defineProperty(obj, reactiveIdentifieAttr, {
+    value: true,
+    enumerable: false,
+    writable: false
+  });
+}
+
 function isReactiveObject(obj) {
-  return obj.__isReactive;
+  return obj[reactiveIdentifieAttr];
 }
 
 // 创建一个handler，depend用于在每次get的时候收集依赖（如果有的话）
@@ -21,7 +35,8 @@ function createHandler(depend) {
     get: createProxyGetter(depend),
     set: createProxySetter((v) => {// 新数据转换为响应式代理
       return (isObject(v) && !isRef(v)) ? createReactiveObject(v, createHandler(depend)) : v;
-    })
+    }),
+    ownKeys: createProxyOwnKeysHandler()
   }
 }
 
@@ -32,7 +47,7 @@ function createDefaultHandler() {
 
 function createReactiveObject(obj, handler, transform = (obj, handler) => [obj, handler]) {
   // ref或者已经是reactive直接返回
-  if (!isObject(obj) || isReactiveObject(obj) || isRef(obj)) {
+  if (!isObject(obj) || isReactiveObject(obj) || isRef(obj) || isReadonly(obj)) {
     return obj;
   }
   // 转换
@@ -48,7 +63,7 @@ function createReactiveObject(obj, handler, transform = (obj, handler) => [obj, 
       obj[key] = createReactiveObject(value, handler);
     }
   }
-  obj.__isReactive = true;
+  setIdentifie(obj);
   return new Proxy(obj, handler);
 }
 

@@ -2,6 +2,8 @@ import { isObject } from './utils.js';
 
 import { defaultDepend, track, trigger } from './depend.js';
 
+import { handleArray } from './operators.js';
+
 // ref标识
 const refTypeName = '__isRef';
 
@@ -25,7 +27,11 @@ function ref(initialValue, getter) {
   const refObject = {
     [refTypeName]: true,
     get value() {
-      track(this, 'value', defaultDepend);
+      const { map } = track(this, 'value', defaultDepend);
+      // 数组话做个处理
+      if(Array.isArray(value)) {
+        handleArray(value, map);
+      }
       // 惰性求值
       if(this[lazyAttrName]) {
         getter && (value = getter());
