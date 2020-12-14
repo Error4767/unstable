@@ -41,14 +41,17 @@ function ref(initialValue, getter) {
     },
     set value(newValue) {
       if (value !== newValue) {
+        
         // 如果是getter就设置惰性求值，在getter中用到的时候求值
         if(getter) {
           needRecalculate(this);
+          // 惰性计算也需要触发trigger，表示值已经改变，通知依赖
+          trigger(this, 'value', value, newValue);
           return;
         }
-        const oldValue = value;
+        trigger(this, 'value', value, newValue);
         value = newValue;
-        trigger(this, 'value', oldValue, newValue);
+        
         return true;
       }
     },

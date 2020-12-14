@@ -1,10 +1,10 @@
 class Dep {
   constructor() {
-    this.subs = [];
+    // Set不会重复
+    this.subs = new Set();
   }
   add(watcher) {
-    // 如果已经有了相同的观察者，则不再添加
-    !this.subs.includes(watcher) && this.subs.push(watcher);
+    this.subs.add(watcher);
   }
   notify(oldValue, newValue) {
     this.subs.forEach(watcher => watcher.update(oldValue, newValue))
@@ -46,6 +46,8 @@ const defaultClearDepend = () => (activeEffect = null);
 
 // WeakMap在对象清除时自动释放对应依赖
 const depMaps = new WeakMap();
+
+console.log(depMaps);
 
 // 获取map的函数,从depMaps中
 function getMap(target) {
