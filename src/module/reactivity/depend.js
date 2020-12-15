@@ -34,20 +34,18 @@ const operateEffects = {
   }
 }
 
-// type: Watcher Instance
-let activeEffect = null;
+// 根据栈存放对应watcher，使用数组是为了防止computed中使用computed导致effect重写问题
+let activeEffects = [];
 
 // 默认的获取/设置/删除依赖方法
-const defaultDepend = () => activeEffect;
+const defaultDepend = () => activeEffects[activeEffects.length - 1];
 
-const defaultSetDepend = (watcher) => (activeEffect = watcher);
+const defaultSetDepend = (watcher) => (activeEffects.push(watcher));
 
-const defaultClearDepend = () => (activeEffect = null);
+const defaultClearDepend = () => (activeEffects.pop());
 
 // WeakMap在对象清除时自动释放对应依赖
 const depMaps = new WeakMap();
-
-console.log(depMaps);
 
 // 获取map的函数,从depMaps中
 function getMap(target) {

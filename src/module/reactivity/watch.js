@@ -20,7 +20,8 @@ function callGetters(dep) {
 
 function watch(dep, effect, options = {}) {
   const {
-    setDepTarget = (watcher, dep) => {
+    // 设置depend并且运行getter(dep)
+    runEffect = (watcher, dep) => {
       // 设置依赖等待收集
       defaultSetDepend(watcher);
       // 触发依赖收集
@@ -29,7 +30,7 @@ function watch(dep, effect, options = {}) {
       defaultClearDepend();
     }
   } = options;
-  setDepTarget(new Watcher(effect), dep);
+  runEffect(effect instanceof Watcher ? effect : new Watcher(effect), dep);
 }
 
 export {
