@@ -200,25 +200,25 @@ function parseToNode(tokens) {
       }
     } else if (token.type === 'paren' && token.value === '<') {
       let tag = {
-        attrs: []
+        props: []
       }
 
       token = tokens[++current];
       while (token && token.value !== '>') {
         const node = parse();
-        node && tag.attrs.push(node);
+        node && tag.props.push(node);
         token = tokens[current];
       }
 
-      const isEndTag = tag.attrs.every(token => {
+      const isEndTag = tag.props.every(token => {
         // 验证第一个字符是/则为结束标签
         return SLASH.test(token.value[0]);
       });
 
       //设定返回值
       //设置类型
-      if (tag.attrs[0]) {
-        if (tag.attrs[0].value !== '/') {
+      if (tag.props[0]) {
+        if (tag.props[0].value !== '/') {
           tag.type = 'TagLiteral';
         } else {
           tag.type = 'Fragument';
@@ -231,24 +231,24 @@ function parseToNode(tokens) {
       //如果不是文档碎片，则可以有名字和属性
       if (tag.type !== 'Fragument') {
         if (isEndTag) {
-          tag.nodeName = tag.attrs[0].value.replace('/', '');
+          tag.nodeName = tag.props[0].value.replace('/', '');
         } else {
-          tag.nodeName = tag.attrs[0].value;
-          tag.attrs = tag.attrs.slice(1);
+          tag.nodeName = tag.props[0].value;
+          tag.props = tag.props.slice(1);
         }
       } else {
-        // delete tag.attrs;
+        // delete tag.props;
         tag.nodeName = '';
       }
 
       // 如果是自闭合标签就删除所有的/
-      isAutoClousureTag(tag.nodeName) ? tag.attrs = tag.attrs.filter(v => v.value !== '/') : null;
+      isAutoClousureTag(tag.nodeName) ? tag.props = tag.props.filter(v => v.value !== '/') : null;
 
       // 如果是无法识别的标签添加了结束符号/，则视为自定义节点单标签
-      if (tag.attrs[tag.attrs.length - 1] && tag.attrs[tag.attrs.length - 1].value === '/') {
+      if (tag.props[tag.props.length - 1] && tag.props[tag.props.length - 1].value === '/') {
         tag.clousure = true;
         // 删除闭合符/
-        tag.attrs = tag.attrs.filter(v => v.value !== '/');
+        tag.props = tag.props.filter(v => v.value !== '/');
       }
 
       return tag;
@@ -269,7 +269,7 @@ function parseToNode(tokens) {
 function parseToTree(nodes) {
   let current = 0;
   const length = nodes.length;
-  const ast = {
+  let ast = {
     // 这里Fragument只是指这个编译器用于生成VNODE,没有更元素，使用Fragument
     type: 'Fragument',
     children: []
@@ -315,6 +315,8 @@ function parseToTree(nodes) {
       ast.children.push(node);
     }
   }
+  // 如果小于等于1，就是单个元素，多于一个，就是文档碎片
+  ast.children.length <= 1 && (ast = ast.children[0]);
   return ast;
 }
 
@@ -326,19 +328,19 @@ function traverser(ast) {
   }
   // 删除节点类型中的Literal
   ast.type = ast.type.replace('Literal', '');
-  if(ast.attrs && ast.attrs.length > 0) {
-    // 把ast.attrs转换为一个对象
-    const attrs = ast.attrs;
-    ast.attrs = {};
-    attrs.forEach(v => {
+  if(ast.props && ast.props.length > 0) {
+    // 把ast.props转换为一个对象
+    const props = ast.props;
+    ast.props = {};
+    props.forEach(v => {
       // 删除属性中的Literal
       v.type = v.type.replace('Literal', '');
       // 如果没有赋值则默认设置为true，赋值了就直接赋值
       if(v.type === 'Expression') {
-        ast.attrs[v.value.key] = v.value.value;
+        ast.props[v.value.key] = v.value.value;
       }
       else if (v.type === 'Name') {
-        ast.attrs[v.value] = true;
+        ast.props[v.value] = true;
       }
       return v;
     });
