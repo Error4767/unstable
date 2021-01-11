@@ -90,7 +90,11 @@ class Promise {
     return this.then(undefined, onRejected);
   }
   finally(callback) {
-    this.then(callback, callback);
+    // 遵循标准,finally无参数
+    this.then(
+      () => callback(),
+      () => callback()
+    );
   }
   static resolvePromise(newPromise, x, resolve, reject) {
     if (newPromise === x) {
@@ -148,6 +152,22 @@ class Promise {
       resolve(x);
     }
   }
+  static resolve(val) {
+    if (val instanceof Promise) {
+      return val;
+    }
+    return new Promise((resolve, reject) => {
+      resolve(val);
+    });
+  }
+  static reject(val) {
+    if (val instanceof Promise) {
+      return val;
+    }
+    return new Promise((resolve, reject) => {
+      reject(val);
+    });
+  }
   static all(promises) {
     return new Promise((resolve, reject) => {
       // 记录成功的promise数量
@@ -155,7 +175,7 @@ class Promise {
       // 记录成功的promise结果
       let fulfilledResults = [];
       promises.forEach((promise, i) =>
-        promise.then(result => {
+        promise.then((result) => {
           fulfilledPromiseNumber++;
           fulfilledResults[i] = result;
           if (fulfilledPromiseNumber === promises.length) {
@@ -166,8 +186,40 @@ class Promise {
     });
   }
   static race(promises) {
-    return new Promise((resolve, reject)=> {
-      promises.forEach(promise=> promise.then(resolve, reject));
+    return new Promise((resolve, reject) => {
+      promises.forEach((promise) => promise.then(resolve, reject));
+    });
+  }
+  static allSettled(promises) {
+    return new Promise((resolve) => {
+      // 记录结束的promise数量
+      let endPromiseNumber = 0;
+      // 记录promise结果
+      let endResults = [];
+      promises.forEach((promise, i) => {
+        promise.then(
+          (result) => {
+            endPromiseNumber++;
+            endResults[i] = {
+              status: FULFILLED,
+              value: result,
+            };
+            if (endPromiseNumber === promises.length) {
+              resolve(endResults);
+            }
+          },
+          (reason) => {
+            endPromiseNumber++;
+            endResults[i] = {
+              status: REJECTED,
+              reason: reason,
+            };
+            if (endPromiseNumber === promises.length) {
+              resolve(endResults);
+            }
+          }
+        );
+      });
     });
   }
   static any(promises) {
@@ -177,15 +229,18 @@ class Promise {
       // 记录失败的promise结果
       let rejectedResults = [];
       promises.forEach((promise, i) =>
-        promise.then(resolve, reason => {
+        promise.then(resolve, (reason) => {
           rejectedPromiseNumber++;
           rejectedResults[i] = reason;
           if (rejectedPromiseNumber === promises.length) {
-            const errorInfo = 'All promises were rejected';
+            const errorInfo = "All promises were rejected";
             // 根据标准将多个错误封装在一个错误中
-            const aggregateError = new AggregateError(rejectedResults, errorInfo);
+            const aggregateError = new AggregateError(
+              rejectedResults,
+              errorInfo
+            );
             // 手动设置stack信息，与标准保持同步
-            aggregateError.stack = 'AggregateError: ' + errorInfo;
+            aggregateError.stack = "AggregateError: " + errorInfo;
             reject(aggregateError);
           }
         })
@@ -194,6 +249,4 @@ class Promise {
   }
 }
 
-export {
-  Promise
-}
+export { Promise };
