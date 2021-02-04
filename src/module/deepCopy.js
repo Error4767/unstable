@@ -93,32 +93,6 @@ const copyRegExp = (target)=> {
 	return new RegExp(source, flags);
 }
 
-// 由于function不可复制，该函数暂时弃用
-const copyFunction = (target)=> {
-	if(typeof target === 'function') {
-		if(!target.prototype){
-			return target;
-		}
-
-		const functionString =  target.toString(),
-			bodyReg = /(?<={)(.|\n)+(?=})/m,
-			paramReg = /(?<=\().+(?=\)\s+{)/,
-			body = bodyReg.exec(functionString),
-			param = paramReg.exec(functionString);
-		if(!body) {
-			return null;
-		}
-		if(param) {
-			param = param[0].split(',');
-			return new Function(...param, body[0]);
-		}else {
-			return new Function(body[0]);
-		}
-	}else {
-		throw new TypeError('target is a not function');
-	}
-}
-
 const deepCopy = (target, weakmap = new WeakMap())=> {
 	if(!isObject(target)) {
 		return target;
