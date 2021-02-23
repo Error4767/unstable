@@ -15,8 +15,11 @@ function setIdentifie(obj) {
 }
 
 function readonly(obj) {
-  for(let value of obj) {
-    isObject(value) && Object.freeze(value);
+  if(!isObject(obj)) {
+    return;
+  }
+  for(let key in obj) {
+    readonly(obj[key]);
   }
   setIdentifie(obj);
   Object.freeze(obj);
