@@ -28,6 +28,7 @@ function watch(dep, effect, options = {}) {
       callGetters(dep);
       // 收集完毕后清除
       defaultClearDepend();
+      options.immediate && effect(); // immediate属性true则立即运行一次effect
     }
   } = options;
   runEffect(effect instanceof Watcher ? effect : new Watcher(effect), dep);
