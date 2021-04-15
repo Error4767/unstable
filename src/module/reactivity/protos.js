@@ -21,7 +21,7 @@ methods.forEach(methodName=> {
   mutatedArrayProto[methodName] = function (...args) {
     arrayProto[methodName].call(this, ...args);
     // 触发effect
-    this?.[operateEffects.effectsIdentifie]?.forEach(dep=> dep.notify());
+    this?.[operateEffects.effectsIdentify]?.forEach(dep=> dep.notify());
   }
 })
 

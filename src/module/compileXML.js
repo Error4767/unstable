@@ -11,7 +11,7 @@ const UNALLOWED_NAME = /[^A-Za-z0-9_$-]/;// 检测非法名称
 const XML_COMMENTS = /<!--(.)*-->/igs;
 
 // 检测是否是自闭合标签
-const autoClousureTags = [
+const autoClosureTags = [
   'meta',
   'link',
   'base',
@@ -20,7 +20,7 @@ const autoClousureTags = [
   'input',
   'img'
 ];
-const isAutoClousureTag = (tag) => autoClousureTags.includes(tag);
+const isAutoClosureTag = (tag) => autoClosureTags.includes(tag);
 
 // 前置转换
 function preTransform(input) {
@@ -74,7 +74,7 @@ function tokenizer(input) {
         value: char
       });
       inTag = false;
-    }else {
+    } else {
       if (inTag) {
         if (char === '=') {
           tokens.push({
@@ -127,20 +127,20 @@ function tokenizer(input) {
             type: 'name',
             value
           } : {
-              type: 'expression',
-              value
-            };
+            type: 'expression',
+            value
+          };
           tokens.push(token);
         }
       } else {
         // 处理标签尖括号外部的情况
         const value = parseStringTokenOutTag().trim();
         value.replace(/[\↵\r\n\s]/g, '').length > 0 ?
-        tokens.push({
-          type: 'string',
-          // 替换换行，多个空格缩短为1个
-          value: value.replace(/[\↵\r\n]/g, '').replace(/\s+/g, ' ')
-        }) : null;
+          tokens.push({
+            type: 'string',
+            // 替换换行，多个空格缩短为1个
+            value: value.replace(/[\↵\r\n]/g, '').replace(/\s+/g, ' ')
+          }) : null;
       }
     }
     current++;
@@ -221,15 +221,15 @@ function parseToNode(tokens) {
         if (tag.props[0].value !== '/') {
           tag.type = 'TagLiteral';
         } else {
-          tag.type = 'Fragument';
+          tag.type = 'Fragment';
         }
         isEndTag ? tag.value = 'end' : tag.value = 'start';
       } else {
-        tag.type = 'Fragument';
+        tag.type = 'Fragment';
         tag.value = 'start';
       }
       //如果不是文档碎片，则可以有名字和属性
-      if (tag.type !== 'Fragument') {
+      if (tag.type !== 'Fragment') {
         if (isEndTag) {
           tag.nodeName = tag.props[0].value.replace('/', '');
         } else {
@@ -242,11 +242,11 @@ function parseToNode(tokens) {
       }
 
       // 如果是自闭合标签就删除所有的/
-      isAutoClousureTag(tag.nodeName) ? tag.props = tag.props.filter(v => v.value !== '/') : null;
+      isAutoClosureTag(tag.nodeName) ? tag.props = tag.props.filter(v => v.value !== '/') : null;
 
       // 如果是无法识别的标签添加了结束符号/，则视为自定义节点单标签
       if (tag.props[tag.props.length - 1] && tag.props[tag.props.length - 1].value === '/') {
-        tag.clousure = true;
+        tag.Closure = true;
         // 删除闭合符/
         tag.props = tag.props.filter(v => v.value !== '/');
       }
@@ -270,8 +270,8 @@ function parseToTree(nodes) {
   let current = 0;
   const length = nodes.length;
   let ast = {
-    // 这里Fragument只是指这个编译器用于生成VNODE,没有更元素，使用Fragument
-    type: 'Fragument',
+    // 这里Fragment只是指这个编译器用于生成VNODE,没有更元素，使用Fragment
+    type: 'Fragment',
     children: []
   }
   function parse() {
@@ -279,13 +279,13 @@ function parseToTree(nodes) {
     if (
       node
       //检查类型
-      && (node.type === 'TagLiteral' || node.type === 'Fragument')
+      && (node.type === 'TagLiteral' || node.type === 'Fragment')
       //检测是否是开始标签
       && node.value === 'start'
       //跳过自闭合标签
-      && !isAutoClousureTag(node.nodeName)
+      && !isAutoClosureTag(node.nodeName)
       //跳过自定义闭合单标签
-      && !node.clousure
+      && !node.Closure
     ) {
       // 记录当前元素，便于后面添加node
       const parent = node;
@@ -298,7 +298,7 @@ function parseToTree(nodes) {
         // 获取元素，如果是元素则继续向下分析
         node = parse();
         // 遇到结束标签终结本次while
-        if ((node.type === 'TagLiteral' || node.type === 'Fragument') && node.value === 'end') {
+        if ((node.type === 'TagLiteral' || node.type === 'Fragment') && node.value === 'end') {
           break;
         }
         node && parent.children.push(node);
@@ -328,7 +328,7 @@ function traverser(ast) {
   }
   // 删除节点类型中的Literal
   ast.type = ast.type.replace('Literal', '');
-  if(ast.props && ast.props.length > 0) {
+  if (ast.props && ast.props.length > 0) {
     // 把ast.props转换为一个对象
     const props = ast.props;
     ast.props = {};
@@ -336,7 +336,7 @@ function traverser(ast) {
       // 删除属性中的Literal
       v.type = v.type.replace('Literal', '');
       // 如果没有赋值则默认设置为true，赋值了就直接赋值
-      if(v.type === 'Expression') {
+      if (v.type === 'Expression') {
         ast.props[v.value.key] = v.value.value;
       }
       else if (v.type === 'Name') {
@@ -347,9 +347,9 @@ function traverser(ast) {
   }
   // 因为已经解析完毕标签了，所以删除一些东西
   // 删除标签结束标识
-  ast.clousure ? delete ast.clousure : null;
+  ast.Closure ? delete ast.Closure : null;
   // 删除value属性，不再需要标记start和end
-  if (ast.type === 'Tag' || ast.type === 'Fragument') {
+  if (ast.type === 'Tag' || ast.type === 'Fragment') {
     delete ast.value
   }
   return ast;

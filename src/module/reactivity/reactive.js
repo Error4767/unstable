@@ -14,11 +14,11 @@ import { isReadonly } from './readonly.js';
 
 import { isRef } from './ref.js';
 
-const reactiveIdentifieAttr = '__isReactive';
+const reactiveIdentifyAttr = '__isReactive';
 
 // 设置标识
-function setIdentifie(obj) {
-  Object.defineProperty(obj, reactiveIdentifieAttr, {
+function setIdentify(obj) {
+  Object.defineProperty(obj, reactiveIdentifyAttr, {
     value: true,
     enumerable: false,
     writable: false
@@ -26,7 +26,7 @@ function setIdentifie(obj) {
 }
 
 function isReactiveObject(obj) {
-  return obj[reactiveIdentifieAttr];
+  return obj[reactiveIdentifyAttr];
 }
 
 // 创建一个handler，depend用于在每次get的时候收集依赖（如果有的话）
@@ -63,7 +63,7 @@ function createReactiveObject(obj, handler, transform = (obj, handler) => [obj, 
       obj[key] = createReactiveObject(value, handler);
     }
   }
-  setIdentifie(obj);
+  setIdentify(obj);
   return new Proxy(obj, handler);
 }
 

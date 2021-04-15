@@ -930,17 +930,17 @@ class RedBlackTree{
 
 class Graph{
   constructor(){
-    this.vertexs = [];
+    this.vertexes = [];
     this.edges = new Map();
     this.edges.weights = new Map();
-    this.vertexsSize = 0;
+    this.vertexesSize = 0;
     this.edgesSize = 0;
   }
   addVertex(v){
-    this.vertexs.push(v);
+    this.vertexes.push(v);
     this.edges.set(v,[]);
     this.edges.weights.set(v,[]);
-    this.vertexsSize++;
+    this.vertexesSize++;
   }
   addEdge(v1,v2,weight = null,hasAngel = false){
     if(hasAngel === true){
@@ -956,8 +956,8 @@ class Graph{
     }
   }
   setEdgeWeight(v1,v2,weight = null){
-    let index = this.vertexs.indexOf(v1),
-      index2 = this.vertexs.indexOf(v2);
+    let index = this.vertexes.indexOf(v1),
+      index2 = this.vertexes.indexOf(v2);
     if(index !== -1 && index2 !== -1){
       if(this.edges.weights.get(v1) && this.edges.weights.get(v2)){
         this.edges.weights.get(v1)[this.edges.get(v1).indexOf(v2)] = weight;
@@ -969,8 +969,8 @@ class Graph{
   }
   getEdgeWeight(v1,v2){
     // 判断两顶点间边的权重如果没有点或边或权重则返回undefined
-    let index = this.vertexs.indexOf(v1),
-      index2 = this.vertexs.indexOf(v2);
+    let index = this.vertexes.indexOf(v1),
+      index2 = this.vertexes.indexOf(v2);
     if(index !== -1 && index2 !== -1){
       return this.edges.weights.get(v1)[this.edges.get(v1).indexOf(v2)];
     }else{
@@ -1004,23 +1004,23 @@ class Graph{
     });
   }
   removeVertex(v){
-    let index = this.vertexs.indexOf(v);
+    let index = this.vertexes.indexOf(v);
     if(index !== -1){
       this.removeAllEdges(v);
       this.edges.delete(v);
-      this.vertexs.splice(index,1);
-      this.vertexsSize--;
+      this.vertexes.splice(index,1);
+      this.vertexesSize--;
     }
   }
   initColors(){
     let colors = new Map();
-    this.vertexs.forEach((v,i,a)=>{
+    this.vertexes.forEach((v,i,a)=>{
       colors.set(v,'white');
     });
     return colors;
   }
   bfs(startV,handler){
-    if(this.vertexs.indexOf(startV) !== -1){
+    if(this.vertexes.indexOf(startV) !== -1){
       let colors = this.initColors();
       let queue = new Queue();
       queue.enqueue(startV);
@@ -1038,7 +1038,7 @@ class Graph{
     }
   }
   dfs(startV,handler){
-    if(this.vertexs.indexOf(startV) !== -1){
+    if(this.vertexes.indexOf(startV) !== -1){
       let colors = this.initColors();
       this.dfsRecursion(startV,colors,handler);
     }
@@ -1055,7 +1055,7 @@ class Graph{
   }
   toString(){
     let resultStr = ``;
-    this.vertexs.forEach((v,i,a)=>{
+    this.vertexes.forEach((v,i,a)=>{
       resultStr += `${v} -->`;
       this.edges.get(v).forEach((v2,k,m)=>{
         let edgeWeight = this.edges.weights.get(v)[this.edges.get(v).indexOf(v2)];
@@ -1067,7 +1067,7 @@ class Graph{
   }
   size(attr = 'vertex'){
     if(attr === 'vertex'){
-      return this.vertexsSize;
+      return this.vertexesSize;
     }else if(attr === 'edge'){
       return this.edgesSize;
     }else{
@@ -1076,7 +1076,7 @@ class Graph{
   };
   isEmpty(attr = 'vertex'){
     if(attr === 'vertex'){
-      return this.vertexsSize === 0;
+      return this.vertexesSize === 0;
     }else if(attr === 'edge'){
       return this.edgesSize === 0;
     }else{

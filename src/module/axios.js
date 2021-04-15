@@ -1,10 +1,10 @@
-import {merge} from './merge.js';
+import { merge } from './merge.js';
 let interceptor = {
-	use(successCallback, errorCallback){
-		if(typeof successCallback === 'function') {
+	use(successCallback, errorCallback) {
+		if (typeof successCallback === 'function') {
 			this.successInterceptor = successCallback;
 		}
-		if(typeof errorCallback === 'function') {
+		if (typeof errorCallback === 'function') {
 			this.errorInterceptor = errorCallback;
 		}
 	},
@@ -21,14 +21,14 @@ class Axios {
 		let context = merge(self, Axios.defaults, config);
 		let instance = self.request.bind(context);
 		instance.request = self.request.bind(context);
-		instance.create = (config)=> {
+		instance.create = (config) => {
 			return new Axios(config);
 		};
 		instance.default = context;
 		instance.interceptors = context.interceptors;
-		Axios.methods.forEach((val)=>{
-			 let method = function(url,config) {
-				if(!config){
+		Axios.methods.forEach((val) => {
+			let method = function (url, config) {
+				if (!config) {
 					config = {};
 				}
 				config.method = val;
@@ -41,21 +41,21 @@ class Axios {
 		return instance;
 	}
 
-	request(config = {}){
+	request(config = {}) {
 		let self = this;
-		let promise = new Promise((resolve, reject)=> {
-			try{
+		let promise = new Promise((resolve, reject) => {
+			try {
 				config = self.interceptors.request.successInterceptor(config);
 				resolve(config);
-			}catch(err) {
+			} catch (err) {
 				reject(err);
 			}
-		}).then((config)=> {
-			return new Promise((resolve, reject)=>{
+		}).then((config) => {
+			return new Promise((resolve, reject) => {
 				config = merge(self, config);
 				//handle request data
 				self.handleRequestData(config);
-				if(config.data){
+				if (config.data) {
 					//set cache
 					self.setCache(config);
 				}
@@ -67,12 +67,12 @@ class Axios {
 					headers = null,
 					cancelToken = null,
 					responseType = null,
-					withCredentials 
+					withCredentials
 				} = config;
 				url = baseURL + url;
-				if(XMLHttpRequest){
+				if (XMLHttpRequest) {
 					var xhr = new XMLHttpRequest();
-				}else{
+				} else {
 					var xhr = new ActiveXObject();
 				}
 				//是否发送cookie
@@ -82,126 +82,126 @@ class Axios {
 				responseType ? xhr.responseType = responseType : null;
 
 				//请求回调
-				xhr.addEventListener('readystatechange', ()=>{
-					if(xhr.readyState === 4){
-						if(/^(2|3)\d{2}$/.test(xhr.status)) {
+				xhr.addEventListener('readystatechange', () => {
+					if (xhr.readyState === 4) {
+						if (/^(2|3)\d{2}$/.test(xhr.status)) {
 							resolve(self.handleResponseData(xhr, config));
-						}else {
-						  reject('request is error , status = ' + xhr.status);
-	          }
-					}	
+						} else {
+							reject('request is error , status = ' + xhr.status);
+						}
+					}
 				});
 				//如果有，添加上传进度事件回调
-				if(typeof config.onUploadProgress === 'function') {
+				if (typeof config.onUploadProgress === 'function') {
 					xhr.upload.addEventListener('progress', config.onUploadProgress);
 				}
-				xhr.open(method,url,true);
+				xhr.open(method, url, true);
 				//设置请求头
 				self.setRequestHeaders(xhr, headers);
 				xhr.send(data);
 				//如果需要，取消请求的相关操作
-				if(typeof cancelToken === 'function') {
-					cancelToken((message)=> {
+				if (typeof cancelToken === 'function') {
+					cancelToken((message) => {
 						reject(message);
 						xhr.abort();
 					});
 				}
 			});
 		}, self.interceptors.request.errorInterceptor)
-		.then((result)=> {
-			try{
-				result = self.interceptors.response.successInterceptor(result);
-				return result;
-			}catch(err) {
-				return Promise.reject(err);
-			}
-		}, self.interceptors.response.errorInterceptor);
-		
+			.then((result) => {
+				try {
+					result = self.interceptors.response.successInterceptor(result);
+					return result;
+				} catch (err) {
+					return Promise.reject(err);
+				}
+			}, self.interceptors.response.errorInterceptor);
+
 		return promise;
 	}
-	handleRequestData(config = {}){
-		let {method,data} = config;
-		if(config.transformRequest && config.transformRequest instanceof Array) {
-			if(config.transformRequest.length > 1) {
-				data = config.transformRequest.reduce((oldv,v)=> {
+	handleRequestData(config = {}) {
+		let { method, data } = config;
+		if (config.transformRequest && config.transformRequest instanceof Array) {
+			if (config.transformRequest.length > 1) {
+				data = config.transformRequest.reduce((oldv, v) => {
 					return v(oldv);
 				}, data);
-			}else {
+			} else {
 				data = config.transformRequest[0](data);
 			}
 		}
 		//handle data
-		if(!data){
+		if (!data) {
 			return
 		}
 		//set config
-		if(/^(GET|DELETE|HEAD|TRACE|OPTIONS)$/i.test(method)){
+		if (/^(GET|DELETE|HEAD|TRACE|OPTIONS)$/i.test(method)) {
 			let str = '';
-			if(typeof data === 'object'){
-				for(let key in data){
-					if(data.hasOwnProperty(key)){
+			if (typeof data === 'object') {
+				for (let key in data) {
+					if (data.hasOwnProperty(key)) {
 						str += key + '=' + data[key] + '&';
 					}
 				}
-				str = str.substring(0,str.length-1);
+				str = str.substring(0, str.length - 1);
 			}
-			if(str){
-				if(!/\?/.test(config.url)){
+			if (str) {
+				if (!/\?/.test(config.url)) {
 					config.url += '?' + str;
-				}else{
+				} else {
 					config.url += '&' + str;
 				}
 			}
 			config.data = null;
 			return;
-		}else{
-			if(Object.prototype.toString.call(config.data) !== '[object File]') {
-				if(typeof config.data === 'object') {
+		} else {
+			if (Object.prototype.toString.call(config.data) !== '[object File]') {
+				if (typeof config.data === 'object') {
 					config.data = JSON.stringify(data);
 				}
 			}
 		}
 	}
-	setCache(config = {}){
-		if(config.cache === true){
+	setCache(config = {}) {
+		if (config.cache === true) {
 			config.url += '&_=' + new Date().getTime();
 		}
 	}
 	setRequestHeaders(xhr, headers = {}) {
-		if(headers){
+		if (headers) {
 			let headersKey = Object.keys(headers);
-			if(headersKey.length<=1){
-				if(headersKey.length !==0){
-					xhr.setRequestHeader(headersKey[0],headers[0]);
+			if (headersKey.length <= 1) {
+				if (headersKey.length !== 0) {
+					xhr.setRequestHeader(headersKey[0], headers[0]);
 				}
-			}else{
-				headersKey.forEach((val)=>{
-					xhr.setRequestHeader(val,headers[val]);
+			} else {
+				headersKey.forEach((val) => {
+					xhr.setRequestHeader(val, headers[val]);
 				});
 			}
 		}
 	}
 	handleResponseData(xhr, config = {}) {
 		let responseData = xhr.response;
-		if(config.transformResponse && config.transformResponse instanceof Array) {
-			if(config.transformResponse.length > 1) {
-				responseData = config.transformResponse.reduce((oldv,v)=> {
+		if (config.transformResponse && config.transformResponse instanceof Array) {
+			if (config.transformResponse.length > 1) {
+				responseData = config.transformResponse.reduce((oldv, v) => {
 					return v(oldv);
 				}, responseData);
-			}else {
+			} else {
 				responseData = config.transformResponse[0](responseData);
 			}
 		}
 		let responseHeaders = xhr.getAllResponseHeaders().trim();
 		responseHeaders = responseHeaders.split(/\n/);
-		responseHeaders = responseHeaders.map((val,index,arr)=>{
+		responseHeaders = responseHeaders.map((val, index, arr) => {
 			let position = arr[index].indexOf(':');
-			let key = arr[index].substring(0,position);
+			let key = arr[index].substring(0, position);
 			let value = arr[index].substring(position + 1).trim();
-			return {key,value};
+			return { key, value };
 		});
 		let responseHeadersObj = {};
-		responseHeaders.forEach((val,index,arr)=>{
+		responseHeaders.forEach((val, index, arr) => {
 			responseHeadersObj[val['key']] = val['value'];
 		});
 		responseHeaders = null;
@@ -216,22 +216,22 @@ class Axios {
 	}
 }
 Axios.defaults = {
-	url:'',
-	baseURL:'',
-	method:'get',
-	data:'null',
-	cache:false,
+	url: '',
+	baseURL: '',
+	method: 'get',
+	data: 'null',
+	cache: false,
 	headers: {
 		'Accept': 'text/plain, */*'
 	},
-	transformRequest: [(data)=> {
+	transformRequest: [(data) => {
 		return data;
 	}],
-	transformResponse: [(response)=> {
+	transformResponse: [(response) => {
 		let res;
 		try {
 			res = JSON.parse(response);
-		}catch (err) {
+		} catch (err) {
 			res = response;
 		}
 		return res;
@@ -241,7 +241,7 @@ Axios.defaults = {
 		response: interceptor
 	}
 }
-Axios.methods = ['get','delete','head','option','post','put','patch'];
+Axios.methods = ['get', 'delete', 'head', 'option', 'post', 'put', 'patch'];
 let axios = new Axios();
 export {
 	axios

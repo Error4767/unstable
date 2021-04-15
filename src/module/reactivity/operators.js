@@ -19,7 +19,7 @@ function handleArray(arr, map) {
       arr.__proto__ = mutatedArrayProto;
     }
     // 设置依赖列表，便于数组原生方法操作
-    if (!arr[operateEffects.effectsIdentifie]) {
+    if (!arr[operateEffects.effectsIdentify]) {
       operateEffects.setEffects(arr, map);
     }
   }
@@ -49,7 +49,7 @@ function createProxySetter(transform = v => v) {
       trigger(target, key, oldValue, newValue);
 
       // 如果有依赖属性则是ownKeys操作器收集了依赖，触发effect
-      target?.[operateEffects.effectsIdentifie]?.forEach(dep=> dep.notify());
+      target?.[operateEffects.effectsIdentify]?.forEach(dep=> dep.notify());
 
       return operationState;
     }
@@ -61,7 +61,7 @@ function createProxySetter(transform = v => v) {
 function createProxyOwnKeysHandler() {
   return function proxyOwnKeysHandler(target) {
     const map = getMap(target);
-    if(map && !target[operateEffects.effectsIdentifie]) {
+    if(map && !target[operateEffects.effectsIdentify]) {
       operateEffects.setEffects(target, map);
     }
     return Reflect.ownKeys(target);

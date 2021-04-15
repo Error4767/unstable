@@ -10,12 +10,12 @@ class Dep {
   }
 }
 class Watcher {
-  constructor(vm, attr, callback, executeTarversal = true) {
+  constructor(vm, attr, callback, executeTraversal = true) {
     this.callback = callback;
     Dep.target = this;
     let attrChain = getAttrChain(attr),
       val = searchValFromAttrsArr(vm,attrChain);
-    executeTarversal && traversal(val);
+      executeTraversal && traversal(val);
     Dep.target = null;
   }
   update(newVal, oldVal){
