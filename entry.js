@@ -10,7 +10,7 @@ export { readFileAsText, readCsvFile } from './src/module/readFile.js';
 export { removeElement } from './src/module/removeElement.js';
 export { toTime } from './src/module/toTime.js';
 export { deepCopy } from './src/module/deepCopy.js';
-export { axios } from './src/module/axios.js';
+export { request } from './src/module/request.js';
 export { Promise } from './src/module/Promise.js';
 export { debounce } from './src/module/debounce.js';
 export { throttle } from './src/module/throttle.js';

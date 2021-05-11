@@ -64,20 +64,24 @@ class Promise {
         }
       };
       if (self.status === FULFILLED) {
-        try {
-          const x = onFulfilled(self.result);
-          Promise.resolvePromise(null, x, resolve, reject);
-        } catch (err) {
-          reject(err);
-        }
+        setTimeout(() => {
+          try {
+            const x = onFulfilled(self.result);
+            Promise.resolvePromise(null, x, resolve, reject);
+          } catch (err) {
+            reject(err);
+          }
+        });
       }
       if (self.status === REJECTED) {
-        try {
-          const x = onRejected(self.reason);
-          Promise.resolvePromise(null, x, resolve, reject);
-        } catch (err) {
-          reject(err);
-        }
+        setTimeout(() => {
+          try {
+            const x = onRejected(self.reason);
+            Promise.resolvePromise(null, x, resolve, reject);
+          } catch (err) {
+            reject(err);
+          }
+        });
       }
       if (self.status === PENDING) {
         self.onFulfilledCallbacks.push(onFulFulledCallbackFunction);

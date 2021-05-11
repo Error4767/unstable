@@ -15,18 +15,18 @@ let interceptor = {
 		return error;
 	}
 }
-class Axios {
+class Request {
 	constructor(config = {}) {
 		let self = this;
-		let context = merge(self, Axios.defaults, config);
+		let context = merge(self, Request.defaults, config);
 		let instance = self.request.bind(context);
 		instance.request = self.request.bind(context);
 		instance.create = (config) => {
-			return new Axios(config);
+			return new Request(config);
 		};
 		instance.default = context;
 		instance.interceptors = context.interceptors;
-		Axios.methods.forEach((val) => {
+		Request.methods.forEach((val) => {
 			let method = function (url, config) {
 				if (!config) {
 					config = {};
@@ -215,7 +215,7 @@ class Axios {
 		}
 	}
 }
-Axios.defaults = {
+Request.defaults = {
 	url: '',
 	baseURL: '',
 	method: 'get',
@@ -241,8 +241,8 @@ Axios.defaults = {
 		response: interceptor
 	}
 }
-Axios.methods = ['get', 'delete', 'head', 'option', 'post', 'put', 'patch'];
-let axios = new Axios();
+Request.methods = ['get', 'delete', 'head', 'option', 'post', 'put', 'patch'];
+let request = new Request();
 export {
-	axios
+	request
 }
