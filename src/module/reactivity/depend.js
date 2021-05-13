@@ -22,11 +22,11 @@ class Watcher {
 
 // 用于在对象上创建effects并且存放依赖
 const operateEffects = {
-  effectsIdentifie: '__effects',
+  effectsIdentify: '__effects',
   // 设置对象的__effects属性指向依赖中的effects
   setEffects(target, map) {
-    if (!target[this.effectsIdentifie]) {
-      Object.defineProperty(target, this.effectsIdentifie, {
+    if (!target[this.effectsIdentify]) {
+      Object.defineProperty(target, this.effectsIdentify, {
         value: map,
         enumerable: false
       });
