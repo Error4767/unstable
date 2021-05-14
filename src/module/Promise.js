@@ -13,7 +13,12 @@ class Promise {
     this.onFulfilledCallbacks = [];
     this.onRejectedCallbacks = [];
     this.bindThis();
-    executor(this.resolve, this.reject);
+    // 如果出错就reject掉
+    try {
+      executor(this.resolve, this.reject);
+    } catch (error) {
+      this.reject(error);
+    }
   }
   resolve(result) {
     if (this.status === PENDING) {
@@ -42,9 +47,8 @@ class Promise {
     this.reject = this.reject.bind(this);
   }
   then(onFulfilled, onRejected) {
-    onFulfilled =
-      typeof onFulfilled === "function" ? onFulfilled : (result) => result;
-    onRejected = typeof onRejected === "function" ? onRejected : (err) => err;
+    onFulfilled = typeof onFulfilled === "function" ? onFulfilled : (result) => Promise.resolve(result);
+    onRejected = typeof onRejected === "function" ? onRejected : (err) => Promise.reject(err);
     let self = this;
     let newPromise = new Promise((resolve, reject) => {
       const onFulFulledCallbackFunction = () => {
@@ -160,15 +164,12 @@ class Promise {
     if (val instanceof Promise) {
       return val;
     }
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       resolve(val);
     });
   }
   static reject(val) {
-    if (val instanceof Promise) {
-      return val;
-    }
-    return new Promise((resolve, reject) => {
+    return new Promise((_, reject) => {
       reject(val);
     });
   }

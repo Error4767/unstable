@@ -328,11 +328,12 @@ function traverser(ast) {
   }
   // 删除节点类型中的Literal
   ast.type = ast.type.replace('Literal', '');
-  if (ast.props && ast.props.length > 0) {
+  if (ast.props) {
     // 把ast.props转换为一个对象
     const props = ast.props;
     ast.props = {};
-    props.forEach(v => {
+    // 存在props就遍历，转换成一个对象
+    props.length > 0 && props.forEach(v => {
       // 删除属性中的Literal
       v.type = v.type.replace('Literal', '');
       // 如果没有赋值则默认设置为true，赋值了就直接赋值

@@ -2,7 +2,6 @@ export { setStyle, getStyle } from './src/module/style.js';
 export { addClass, removeClass, hasClass, toggleClass } from './src/module/class.js';
 export { setCookie, getCookie } from './src/module/cookie.js';
 export { merge } from './src/module/merge.js';
-export { removeInvalidKey } from './src/module/removeInvalidKey.js';
 export { loadJs } from './src/module/loadJs.js';
 export { isJSON } from './src/module/isJSON.js';
 export { drag } from './src/module/drag.js';
