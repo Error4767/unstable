@@ -1,17 +1,9 @@
-import { isObject } from './utils.js';
+import { isObject, setIdentify } from './utils.js';
 
 const readonlyIdentify = '__isReadonly';
 
 function isReadonly(obj) {
   return obj[readonlyIdentify];
-}
-
-function setIdentify(obj) {
-  Object.defineProperty(obj, readonlyIdentify, {
-    value: true,
-    enumerable: false,
-    writable: false
-  });
 }
 
 function readonly(obj) {
@@ -21,7 +13,7 @@ function readonly(obj) {
   for(let key in obj) {
     readonly(obj[key]);
   }
-  setIdentify(obj);
+  setIdentify(obj, readonlyIdentify);
   Object.freeze(obj);
   return obj;
 }

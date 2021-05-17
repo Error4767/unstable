@@ -1,11 +1,11 @@
-import { isObject } from './utils.js';
+import { isObject, setIdentify } from './utils.js';
 
 import { defaultDepend, track, trigger } from './depend.js';
 
 import { handleArray } from './operators.js';
 
 // ref标识
-const refTypeName = '__isRef';
+const refIdentify = '__isRef';
 
 // 惰性求值属性标识
 const lazyAttrName = '__needRecalculate';
@@ -25,15 +25,14 @@ function ref(initialValue, getter) {
   let value = initialValue;
 
   const refObject = {
-    [refTypeName]: true,
     get value() {
       const { map } = track(this, 'value', defaultDepend);
       // 数组话做个处理
-      if(Array.isArray(value)) {
+      if (Array.isArray(value)) {
         handleArray(value, map);
       }
       // 惰性求值
-      if(this[lazyAttrName]) {
+      if (this[lazyAttrName]) {
         getter && (value = getter());
         noNeedRecalculate(this);
       }
@@ -41,9 +40,9 @@ function ref(initialValue, getter) {
     },
     set value(newValue) {
       if (value !== newValue) {
-        
+
         // 如果是getter就设置惰性求值，在getter中用到的时候求值
-        if(getter) {
+        if (getter) {
           needRecalculate(this);
           // 惰性计算也需要触发trigger，表示值已经改变，通知依赖
           trigger(this, 'value', value, newValue);
@@ -51,20 +50,23 @@ function ref(initialValue, getter) {
         }
         trigger(this, 'value', value, newValue);
         value = newValue;
-        
+
         return true;
       }
     },
     [lazyAttrName]: false
   }
+  setIdentify(refObject, refIdentify);
   return refObject;
 }
 
 function isRef(v) {
-  return isObject(v) ? (v[refTypeName] ? true : false) : false;
+  return isObject(v) ? (v[refIdentify] ? true : false) : false;
 }
 
 export {
   ref,
-  isRef
+  isRef,
+  needRecalculate,
+  noNeedRecalculate
 }

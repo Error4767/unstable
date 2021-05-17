@@ -1,32 +1,25 @@
-import { isObject, typeOf } from './utils.js';
+import { isObject, typeOf, setIdentify } from './utils.js';
 
 import {
   defaultDepend,
+  getMap,
 } from './depend.js';
 
 import {
   createProxyGetter,
   createProxySetter,
-  createProxyOwnKeysHandler
+  createProxyOwnKeysHandler,
+  handleArray,
 } from './operators.js';
 
 import { isReadonly } from './readonly.js';
 
 import { isRef } from './ref.js';
 
-const reactiveIdentifyAttr = '__isReactive';
-
-// 设置标识
-function setIdentify(obj) {
-  Object.defineProperty(obj, reactiveIdentifyAttr, {
-    value: true,
-    enumerable: false,
-    writable: false
-  });
-}
+const reactiveIdentify = '__isReactive';
 
 function isReactiveObject(obj) {
-  return obj[reactiveIdentifyAttr];
+  return obj[reactiveIdentify];
 }
 
 // 创建一个handler，depend用于在每次get的时候收集依赖（如果有的话）
@@ -63,7 +56,11 @@ function createReactiveObject(obj, handler, transform = (obj, handler) => [obj, 
       obj[key] = createReactiveObject(value, handler);
     }
   }
-  setIdentify(obj);
+  setIdentify(obj, reactiveIdentify);
+  if(Array.isArray(obj)) {
+    let map = getMap(obj);
+    handleArray(obj, map);
+  }
   return new Proxy(obj, handler);
 }
 

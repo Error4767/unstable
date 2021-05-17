@@ -2,8 +2,6 @@ import { track, trigger } from './depend.js';
 
 import { isRef } from './ref.js';
 
-import { mutatedArrayProto } from './protos.js';
-
 import { getMap, operateEffects } from './depend.js';
 
 // 如果是ref类型，返回其value属性值，否则原值返回
@@ -14,10 +12,6 @@ function getValue(value) {
 // 处理array使其方法也具有反应性
 function handleArray(arr, map) {
   if (arr !== Array.prototype) {
-    // 设置原型，使用具有变异方法的原型
-    if (arr.__proto__ !== mutatedArrayProto) {
-      arr.__proto__ = mutatedArrayProto;
-    }
     // 设置依赖列表，便于数组原生方法操作
     if (!arr[operateEffects.effectsIdentify]) {
       operateEffects.setEffects(arr, map);
@@ -48,7 +42,7 @@ function createProxySetter(transform = v => v) {
 
       trigger(target, key, oldValue, newValue);
 
-      // 如果有依赖属性则是ownKeys操作器收集了依赖，触发effect
+      // 如果有依赖属性则是ownKeys操作器收集了依赖或者是数组中的东西，触发effect
       target?.[operateEffects.effectsIdentify]?.forEach(dep=> dep.notify());
 
       return operationState;
