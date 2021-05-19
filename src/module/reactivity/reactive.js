@@ -8,7 +8,8 @@ import {
 import {
   createProxyGetter,
   createProxySetter,
-  createProxyOwnKeysHandler,
+  proxyOwnKeysHandler,
+  proxyDeleteHandler,
   handleArray,
 } from './operators.js';
 
@@ -29,7 +30,8 @@ function createHandler(depend) {
     set: createProxySetter((v) => {// 新数据转换为响应式代理
       return (isObject(v) && !isRef(v)) ? createReactiveObject(v, createHandler(depend)) : v;
     }),
-    ownKeys: createProxyOwnKeysHandler()
+    ownKeys: proxyOwnKeysHandler,
+    deleteProperty: proxyDeleteHandler,
   }
 }
 

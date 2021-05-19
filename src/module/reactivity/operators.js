@@ -43,7 +43,7 @@ function createProxySetter(transform = v => v) {
       trigger(target, key, oldValue, newValue);
 
       // 如果有依赖属性则是ownKeys操作器收集了依赖或者是数组中的东西，触发effect
-      target?.[operateEffects.effectsIdentify]?.forEach(dep=> dep.notify());
+      target?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
 
       return operationState;
     }
@@ -52,19 +52,31 @@ function createProxySetter(transform = v => v) {
 }
 
 // 捕获ownKeys类操作,Object.keys等
-function createProxyOwnKeysHandler() {
-  return function proxyOwnKeysHandler(target) {
-    const map = getMap(target);
-    if(map && !target[operateEffects.effectsIdentify]) {
-      operateEffects.setEffects(target, map);
-    }
-    return Reflect.ownKeys(target);
+function proxyOwnKeysHandler(target) {
+  const map = getMap(target);
+  if (map && !target[operateEffects.effectsIdentify]) {
+    operateEffects.setEffects(target, map);
   }
+  return Reflect.ownKeys(target);
+}
+
+// 删除属性handler
+function proxyDeleteHandler(target, key) {
+  const oldValue = target[key];
+  const isDeleted = Reflect.deleteProperty(target, key);
+  if(isDeleted) {
+    trigger(target, key, oldValue, undefined);
+
+    // 如果有依赖属性则是ownKeys操作器收集了依赖或者是数组中的东西，触发effect
+    target?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
+  }
+  return isDeleted;
 }
 
 export {
   createProxyGetter,
   createProxySetter,
-  createProxyOwnKeysHandler,
+  proxyOwnKeysHandler,
+  proxyDeleteHandler,
   handleArray
 }
