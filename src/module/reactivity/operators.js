@@ -1,8 +1,6 @@
-import { track, trigger } from './depend.js';
+import { track, trigger, defaultDepend, getMap, operateEffects } from './depend.js';
 
 import { isRef } from './ref.js';
-
-import { getMap, operateEffects } from './depend.js';
 
 // 如果是ref类型，返回其value属性值，否则原值返回
 function getValue(value) {
@@ -19,17 +17,16 @@ function handleArray(arr, map) {
   }
 }
 
-// map中根据key存放一些dep
-function createProxyGetter(depend) {
-  return function proxyGetter(target, key) {
-    const { map } = track(target, key, depend);
-    // 是数组则处理一下
-    Array.isArray(target[key]) && handleArray(target[key], map);
-    let value = getValue(Reflect.get(...arguments));
-    return value;
-  }
+// proxy getter
+function proxyGetter(target, key) {
+  const { map } = track(target, key, defaultDepend);
+  // 是数组则处理一下
+  Array.isArray(target[key]) && handleArray(target[key], map);
+  let value = getValue(Reflect.get(target, key));
+  return value;
 }
 
+// proxy setter
 function createProxySetter(transform = v => v) {
   // transform是转换设置的新数据的函数
   return function proxySetter(target, key, value) {
@@ -64,7 +61,7 @@ function proxyOwnKeysHandler(target) {
 function proxyDeleteHandler(target, key) {
   const oldValue = target[key];
   const isDeleted = Reflect.deleteProperty(target, key);
-  if(isDeleted) {
+  if (isDeleted) {
     trigger(target, key, oldValue, undefined);
 
     // 如果有依赖属性则是ownKeys操作器收集了依赖或者是数组中的东西，触发effect
@@ -74,9 +71,10 @@ function proxyDeleteHandler(target, key) {
 }
 
 export {
-  createProxyGetter,
+  proxyGetter,
   createProxySetter,
   proxyOwnKeysHandler,
   proxyDeleteHandler,
+  getValue,
   handleArray
 }

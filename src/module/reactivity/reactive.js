@@ -1,17 +1,16 @@
 import { isObject, typeOf, setIdentify } from './utils.js';
 
-import {
-  defaultDepend,
-  getMap,
-} from './depend.js';
+import { getMap } from './depend.js';
 
 import {
-  createProxyGetter,
+  proxyGetter,
   createProxySetter,
   proxyOwnKeysHandler,
   proxyDeleteHandler,
   handleArray,
 } from './operators.js';
+
+import { createProxyMapGetter } from "./mapHandlers.js";
 
 import { isReadonly } from './readonly.js';
 
@@ -23,22 +22,25 @@ function isReactiveObject(obj) {
   return obj[reactiveIdentify];
 }
 
-// 创建一个handler，depend用于在每次get的时候收集依赖（如果有的话）
-function createHandler(depend) {
+// 创建handlers的函数
+function createHandler(handlerType) { // handlerType: undefined / "map"
+  // setter转换器，如果是一般对象，则转化为响应式对象
+  let setterTransformer = (v) => {// 新数据转换为响应式代理
+    return createReactiveObject(v);
+  }
+
   return {
-    get: createProxyGetter(depend),
-    set: createProxySetter((v) => {// 新数据转换为响应式代理
-      return (isObject(v) && !isRef(v)) ? createReactiveObject(v, createHandler(depend)) : v;
-    }),
+    // 如果是map使用mapGetter，否则使用默认getter
+    get: handlerType === "Map" ? createProxyMapGetter(setterTransformer) : proxyGetter,
+    set: createProxySetter(setterTransformer),
     ownKeys: proxyOwnKeysHandler,
     deleteProperty: proxyDeleteHandler,
   }
 }
 
-// 创建默认handler
-function createDefaultHandler() {
-  return createHandler(defaultDepend);
-}
+// 创建handlers
+const proxyDefaultHandlers =createHandler();
+const proxyMapHandlers = createHandler("Map");
 
 function createReactiveObject(obj, handler, transform = (obj, handler) => [obj, handler]) {
   // ref或者已经是reactive直接返回
@@ -49,28 +51,26 @@ function createReactiveObject(obj, handler, transform = (obj, handler) => [obj, 
   [obj, handler] = transform(obj, handler);
   // handler默认值
   if (!handler) {
-    handler = createDefaultHandler();
+    // 根据类型选择对应handlers
+    handler = typeOf(obj) === "Map" ? proxyMapHandlers : proxyDefaultHandlers;
   }
   // 遍历代理每个对象
   for (let key in obj) {
     const value = obj[key];
-    if ((typeOf(value) === 'Object' || typeOf(value) === 'Array') && obj.hasOwnProperty(key)) {
-      obj[key] = createReactiveObject(value, handler);
+    if (obj.hasOwnProperty(key)) {
+      obj[key] = createReactiveObject(value);
     }
   }
   setIdentify(obj, reactiveIdentify);
-  if(Array.isArray(obj)) {
+  if (Array.isArray(obj)) {
     let map = getMap(obj);
     handleArray(obj, map);
   }
   return new Proxy(obj, handler);
 }
 
-function reactive(obj, depend = defaultDepend) {
-  const result = createReactiveObject(obj, null, (obj) => {
-    return [obj, createHandler(depend)]
-  });
-  return result;
+function reactive(obj) {
+  return createReactiveObject(obj);
 };
 
 export {
