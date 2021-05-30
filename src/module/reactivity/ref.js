@@ -1,72 +1,70 @@
-import { isObject, setIdentify } from './utils.js';
+import { isObject, setIdentify, setMutableIdentify } from './utils.js';
 
 import { defaultDepend, track, trigger } from './depend.js';
 
-import { handleArray } from './operators.js';
-
 // ref标识
-const refIdentify = '__isRef';
+const REF_IDENTIFY = '__isRef';
 
-// 惰性求值属性标识
-const lazyAttrName = '__needRecalculate';
+// 记忆标识
+const MEMOIZED_IDENTIFY = '__memoized';
 
-// 读取时需要重新计算
-function needRecalculate(ref) {
-  ref[lazyAttrName] = true;
+// 忘记上次计算的值，下次读取需重新计算
+function forget(ref) {
+  ref[MEMOIZED_IDENTIFY] = false;
 }
 
-// 读取时不需要重新计算
-function noNeedRecalculate(ref) {
-  ref[lazyAttrName] = false;
+// 记住值，下次不再需要重新计算
+function memoize(ref) {
+  ref[MEMOIZED_IDENTIFY] = true;
 }
 
 function ref(initialValue, getter) {
-  // isReadonly是定义是否只读属性，warnMessage指给只读属性赋值的时候的警告文本
   let value = initialValue;
 
   const refObject = {
     get value() {
-      const { map } = track(this, 'value', defaultDepend);
-      // 数组话做个处理
-      if (Array.isArray(value)) {
-        handleArray(value, map);
-      }
-      // 惰性求值
-      if (this[lazyAttrName]) {
+      track(this, 'value', defaultDepend);
+      // 没有记忆就计算一次，并记忆
+      if (!this[MEMOIZED_IDENTIFY] && getter) {
         getter && (value = getter());
-        noNeedRecalculate(this);
+        memoize(this);
       }
       return value;
     },
     set value(newValue) {
-      if (value !== newValue) {
-
-        // 如果是getter就设置惰性求值，在getter中用到的时候求值
-        if (getter) {
-          needRecalculate(this);
-          // 惰性计算也需要触发trigger，表示值已经改变，通知依赖
-          trigger(this, 'value', value, newValue);
-          return;
-        }
+      if (value !== newValue /* 值改变了才需trigger */ && !getter /* getter不可直接设置值 */) {
         trigger(this, 'value', value, newValue);
         value = newValue;
-
         return true;
       }
+      return false;
     },
-    [lazyAttrName]: false
+    setGetter(newGetter) {
+      getter = newGetter;
+    },
+    // 刷新memoize，仅限有getter的ref
+    update() {
+      if (getter) {
+        // 忘记值
+        forget(this);
+        // 触发trigger重新计算
+        trigger(this, 'value');
+        return;
+      }
+    }
   }
-  setIdentify(refObject, refIdentify);
+  // ref标识
+  setIdentify(refObject, REF_IDENTIFY);
+  // memoized标识
+  setMutableIdentify(refObject, MEMOIZED_IDENTIFY, false);
   return refObject;
 }
 
 function isRef(v) {
-  return isObject(v) ? (v[refIdentify] ? true : false) : false;
+  return isObject(v) ? (v[REF_IDENTIFY] ? true : false) : false;
 }
 
 export {
   ref,
   isRef,
-  needRecalculate,
-  noNeedRecalculate
 }

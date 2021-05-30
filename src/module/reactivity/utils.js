@@ -10,4 +10,13 @@ function setIdentify(obj, identifyName) {
   });
 }
 
-export { setIdentify };
+// 设置可变标识符
+function setMutableIdentify(obj, identifyName, initValue) {
+  Object.defineProperty(obj, identifyName, {
+    value: initValue,
+    enumerable: false,
+    writable: true
+  });
+}
+
+export { setIdentify, setMutableIdentify };
