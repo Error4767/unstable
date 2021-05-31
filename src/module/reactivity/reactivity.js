@@ -1,6 +1,6 @@
 export { Dep, Watcher } from './depend.js';
 
-export { ref, isRef } from './ref.js';
+export { ref, isRef, toRef, toRefs } from './ref.js';
 
 export {
   createReactiveObject,

@@ -18,8 +18,17 @@ function memoize(ref) {
   ref[MEMOIZED_IDENTIFY] = true;
 }
 
-function ref(initialValue, getter) {
-  let value = initialValue;
+function isRef(v) {
+  return isObject(v) ? (v[REF_IDENTIFY] ? true : false) : false;
+}
+
+function ref(rawValue, getter) {
+  // 如果是ref直接返回
+  if(isRef(rawValue)) {
+    return rawValue;
+  }
+
+  let value = rawValue;
 
   const refObject = {
     get value() {
@@ -60,11 +69,35 @@ function ref(initialValue, getter) {
   return refObject;
 }
 
-function isRef(v) {
-  return isObject(v) ? (v[REF_IDENTIFY] ? true : false) : false;
+// 获取单个引用
+function toRef(rawObject, propName) {
+  if(isRef(rawObject[propName])) {
+    return rawObject[propName];
+  }
+  const refObject = {
+    get value() {
+      return rawObject[propName];
+    },
+    set value(newValue) {
+      rawObject[propName] = newValue;
+    }
+  };
+  setIdentify(refObject, REF_IDENTIFY);
+  return refObject;
+}
+
+// 获取对象属性映射的所有引用
+function toRefs(rawObject) {
+  let refsObject = Array.isArray(rawObject) ? new Array(rawObject.length) : {};
+  for(let key in rawObject) {
+    refsObject[key] = toRef(rawObject, key);
+  }
+  return refsObject;
 }
 
 export {
   ref,
   isRef,
+  toRef,
+  toRefs
 }
