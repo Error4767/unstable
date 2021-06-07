@@ -10,7 +10,7 @@ function getValue(value) {
 // 处理array使其方法也具有反应性
 function handleArray(arr, map) {
   if (arr !== Array.prototype) {
-    // 设置依赖列表，便于数组原生方法操作
+    // 设置依赖列表，便于数组操作
     if (!arr[operateEffects.effectsIdentify]) {
       operateEffects.setEffects(arr, map);
     }

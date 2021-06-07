@@ -3,12 +3,12 @@ export { Dep, Watcher } from './depend.js';
 export { ref, isRef, toRef, toRefs } from './ref.js';
 
 export {
-  createReactiveObject,
   reactive,
+  shallowReactive,
   isReactiveObject
 } from './reactive.js';
 
-export { readonly, isReadonly } from './readonly.js';
+export { readonly, shallowReadonly, isReadonly } from './readonly.js';
 
 export { watch } from './watch.js';
 

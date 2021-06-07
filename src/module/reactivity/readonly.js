@@ -6,19 +6,25 @@ function isReadonly(obj) {
   return obj[readonlyIdentify];
 }
 
-function readonly(obj) {
-  if(!isObject(obj)) {
-    return;
-  }
-  for(let key in obj) {
-    readonly(obj[key]);
-  }
+function shallowReadonly(obj) {
   setIdentify(obj, readonlyIdentify);
   Object.freeze(obj);
   return obj;
 }
 
+function readonly(obj) {
+  if(!isObject(obj)) {
+    return obj;
+  }
+  for(let key in obj) {
+    readonly(obj[key]);
+  }
+  shallowReadonly(obj);
+  return obj;
+}
+
 export {
   readonly,
+  shallowReadonly,
   isReadonly
 }
