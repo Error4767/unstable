@@ -18,8 +18,8 @@ import { isRef } from './ref.js';
 
 const reactiveIdentify = '__isReactive';
 
-function isReactiveObject(obj) {
-  return obj[reactiveIdentify];
+function isReactive(obj) {
+  return isObject(obj) ? (obj[reactiveIdentify] ? true : false) : false;
 }
 
 // 创建handlers的函数
@@ -45,7 +45,7 @@ const proxyMapHandlers = createHandler("Map");
 // 判断是否可以转化为响应式对象
 function isTransformableToReactive(obj) {
   // 特殊对象或者不是对象直接返回
-  if (!isObject(obj) || isReactiveObject(obj) || isRef(obj) || isReadonly(obj)) {
+  if (!isObject(obj) || isReactive(obj) || isRef(obj) || isReadonly(obj)) {
     return false;
   }
   return true;
@@ -65,7 +65,6 @@ function createReactiveObject(obj) {
   return new Proxy(obj, handler);
 }
 
-
 // 浅层反应式对象
 function shallowReactive(obj) {
   return isTransformableToReactive(obj) ? createReactiveObject(obj) : obj;
@@ -75,7 +74,7 @@ function reactive(obj) {
   if (!isTransformableToReactive(obj)) {
     return obj;
   }
-  
+
   // 遍历代理每个对象
   for (let key in obj) {
     const value = obj[key];
@@ -89,5 +88,5 @@ function reactive(obj) {
 export {
   reactive,
   shallowReactive,
-  isReactiveObject,
+  isReactive,
 }

@@ -5,7 +5,7 @@ export { ref, isRef, toRef, toRefs } from './ref.js';
 export {
   reactive,
   shallowReactive,
-  isReactiveObject
+  isReactive,
 } from './reactive.js';
 
 export { readonly, shallowReadonly, isReadonly } from './readonly.js';
