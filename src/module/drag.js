@@ -1,21 +1,41 @@
-export function drag(obj){
-	let dragOffsetLeft,dragOffsetTop;
-	let onMouseDownFunction = (e)=>{
+export function drag(obj) {
+	let dragOffsetLeft, dragOffsetTop;
+	// PC 
+	let onMouseDownFunction = (e) => {
 		e = e || window.event;
-		document.addEventListener('mousemove',onMouseMoveFunction,false);
-			dragOffsetLeft = document.documentElement.scrollLeft + e.clientX - obj.offsetLeft;
-			dragOffsetTop = document.documentElement.scrollTop + e.clientY - obj.offsetTop;
+		document.addEventListener('mousemove', onMouseMoveFunction, false);
+		dragOffsetLeft = document.documentElement.scrollLeft + e.clientX - obj.offsetLeft;
+		dragOffsetTop = document.documentElement.scrollTop + e.clientY - obj.offsetTop;
 	}
-	let onMouseMoveFunction = (e)=>{
+	let onMouseMoveFunction = (e) => {
 		e = e || window.event;
 		let elementLeft = document.documentElement.scrollLeft + e.clientX - dragOffsetLeft,
-				elementTop = document.documentElement.scrollTop + e.clientY - dragOffsetTop;
+			elementTop = document.documentElement.scrollTop + e.clientY - dragOffsetTop;
 		obj.style.cssText += ';left:' + elementLeft + 'px;top:' + elementTop + 'px;';
 	}
-	let onMouseUpFunction = (e)=>{
+	let onMouseUpFunction = (e) => {
 		e = e || window.event;
-		document.removeEventListener('mousemove',onMouseMoveFunction,false);
+		document.removeEventListener('touchstart', onMouseMoveFunction, false);
 	}
-	obj.addEventListener('mousedown',onMouseDownFunction,false);
-	obj.addEventListener('mouseup',onMouseUpFunction,false);
+	obj.addEventListener('mousedown', onMouseDownFunction, false);
+	obj.addEventListener('mouseup', onMouseUpFunction, false);
+
+	// 移动端
+
+	let onTouchStartFunction = (e) => {
+		document.addEventListener('touchmove', onTouchMoveFunction);
+		dragOffsetLeft = document.documentElement.scrollLeft + e.changedTouches[0].clientX - obj.offsetLeft;
+		dragOffsetTop = document.documentElement.scrollTop + e.changedTouches[0].clientY - obj.offsetTop;
+	}
+	let onTouchMoveFunction = (e) => {
+		let elementLeft = document.documentElement.scrollLeft + e.changedTouches[0].clientX - dragOffsetLeft,
+			elementTop = document.documentElement.scrollTop + e.changedTouches[0].clientY - dragOffsetTop;
+		obj.style.cssText += ';left:' + elementLeft + 'px;top:' + elementTop + 'px;';
+	}
+	let onTouchEndFunction = (e) => {
+		document.removeEventListener('touchmove', onTouchMoveFunction);
+	}
+
+	obj.addEventListener("touchstart", onTouchStartFunction);
+	obj.addEventListener("touchend", onTouchEndFunction);
 }
