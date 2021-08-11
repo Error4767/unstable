@@ -15,7 +15,7 @@ export function drag(obj) {
   }
   let onMouseUpFunction = (e) => {
     e = e || window.event;
-    document.removeEventListener('touchstart', onMouseMoveFunction, false);
+    document.removeEventListener('mousemove', onMouseMoveFunction, false);
   }
   obj.addEventListener('mousedown', onMouseDownFunction, false);
   obj.addEventListener('mouseup', onMouseUpFunction, false);
