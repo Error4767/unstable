@@ -7,12 +7,11 @@ import { isRef } from "./ref.js";
 let mapPrototype = Map.prototype;
 
 // map其他方法的名字，用于proxy使用时绑定this
-let mapMethodNames = [
-  "has",
-  "entries",
+let mapOtherMethodNames = [
   "forEach",
   "keys",
   "values",
+  "entries",
   Symbol.iterator
 ];
 
@@ -43,12 +42,11 @@ function createProxyMapGetter(transform = v => v) {
     delete(key) {
       const oldValue = mapPrototype.get.call(this, key);
 
+      // 之前map的尺寸
+      let oldSize = this.size;
+
       const isDeleted = mapPrototype.delete.call(this, key);
       if (isDeleted) {// 成功删除则触发对应动作
-
-        // 之前map的尺寸
-        let oldSize = this.size;
-
         // 触发标准动作
         trigger(this, key, oldValue, undefined);
         // 触发size动作
@@ -62,10 +60,23 @@ function createProxyMapGetter(transform = v => v) {
 
       // 长度不为0就可以清理
       if (length > 0) {
+        let actions = [];
+        // 已有属性的动作添加到数组中，在删除后触发
+        this.forEach((value, key)=> {
+          actions.push(()=> trigger(this, key, value, undefined));
+        });
+        
         mapPrototype.clear.call(this);
+        // 运行所有属性绑定的动作
+        actions.forEach(fn=> fn());
         // 清理之后尺寸改变触发size动作
         trigger(this, "size", length, 0);
       }
+    },
+    has(key) {
+      let value = mapPrototype.has.call(this, key);
+      track(this, key, defaultDepend);
+      return value;
     }
   };
 
@@ -77,7 +88,7 @@ function createProxyMapGetter(transform = v => v) {
         return mapMethods[key].bind(target);
       }
       // map的其它标准方法绑定this
-      if (mapMethodNames.includes(key)) {
+      if (mapOtherMethodNames.includes(key)) {
         return target[key].bind(target);
       }
     }

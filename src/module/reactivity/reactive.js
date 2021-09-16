@@ -7,10 +7,12 @@ import {
   createProxySetter,
   proxyOwnKeysHandler,
   proxyDeleteHandler,
+  proxyHasHandler,
   handleArray,
 } from './operators.js';
 
 import { createProxyMapGetter } from "./mapHandlers.js";
+import { createProxySetGetter } from "./setHandlers.js";
 
 import { isReadonly } from './readonly.js';
 
@@ -23,24 +25,28 @@ function isReactive(obj) {
 }
 
 // 创建handlers的函数
-function createHandler(handlerType) { // handlerType: undefined / "map"
+function createHandler(handlerType) { // handlerType: undefined / "Map" / "Set"
   // setter转换器，如果是一般对象，则转化为响应式对象
   let setterTransformer = (v) => {// 新数据转换为响应式代理
     return reactive(v);
   }
 
   return {
-    // 如果是map使用mapGetter，否则使用默认getter
-    get: handlerType === "Map" ? createProxyMapGetter(setterTransformer) : proxyGetter,
+    // 如果是 map, set 就使用对应 getter，否则使用默认getter
+    get: handlerType === "Map" 
+    ? createProxyMapGetter(setterTransformer) 
+    : (handlerType === "Set" ? createProxySetGetter(setterTransformer) : proxyGetter),
     set: createProxySetter(setterTransformer),
     ownKeys: proxyOwnKeysHandler,
     deleteProperty: proxyDeleteHandler,
+    has: proxyHasHandler,
   }
 }
 
 // 创建handlers
 const proxyDefaultHandlers = createHandler();
 const proxyMapHandlers = createHandler("Map");
+const proxySetHandlers = createHandler("Set");
 
 // 判断是否可以转化为响应式对象
 function isTransformableToReactive(obj) {
@@ -53,8 +59,10 @@ function isTransformableToReactive(obj) {
 
 // 创建反应式对象,只在该对象上，不递归创建（无条件判断，内部方法）
 function createReactiveObject(obj) {
+  // 检测类型
+  let objType = typeOf(obj);
   // 根据类型选择对应handlers
-  let handler = typeOf(obj) === "Map" ? proxyMapHandlers : proxyDefaultHandlers;
+  let handler = objType === "Map" ? proxyMapHandlers : ( objType === "Set" ? proxySetHandlers : proxyDefaultHandlers);
   // 设置标识
   setIdentify(obj, reactiveIdentify);
   // 数组额外处理

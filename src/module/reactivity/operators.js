@@ -41,12 +41,12 @@ function createProxySetter(transform = v => v) {
       trigger(target, key, oldValue, newValue);
 
       // 如果有依赖属性
-      if(Array.isArray(target)) {
+      if (Array.isArray(target)) {
         // 是数组,如果是新增元素就触发数组上的effect
-        if(String(key) === String(length)) {// 都转化为字符串比较,如果key=length就是数组新增操作
-          target?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify()); 
+        if (String(key) === String(length)) {// 都转化为字符串比较,如果key=length就是数组新增操作
+          target?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
         }
-      }else {
+      } else {
         // 不是数组，则是ownKeys操作器收集了依赖，触发effect
         target?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
       }
@@ -78,11 +78,20 @@ function proxyDeleteHandler(target, key) {
   return isDeleted;
 }
 
+// 适用于 in 操作符
+function proxyHasHandler(target, key) {
+  // 收集依赖
+  track(target, key, defaultDepend);
+  // 返回 has 结果
+  return Reflect.has(target, key);
+}
+
 export {
   proxyGetter,
   createProxySetter,
   proxyOwnKeysHandler,
   proxyDeleteHandler,
+  proxyHasHandler,
   getValue,
   handleArray
 }
