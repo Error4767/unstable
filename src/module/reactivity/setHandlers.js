@@ -1,4 +1,4 @@
-import { track, trigger, defaultDepend } from "./depend.js";
+import { track, trigger, defaultDepend, operateEffects } from "./depend.js";
 
 import { proxyGetter } from "./operators.js";
 
@@ -8,12 +8,16 @@ const setOtherMethodNames = [
   "forEach",
   "keys",
   "values",
-  "entries",
-  Symbol.iterator
+  "entries"
 ];
 
-export function createProxySetGetter(transform = v=> v) {
+export function createProxySetGetter(transform = v => v) {
   let setMethods = {
+    add(value) {
+      setPrototype.add.call(this, value);
+      // 触发 set 整体的 effect, 如果有的话
+      this?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
+    },
     delete(value) {
       // 之前map的尺寸
       let oldSize = this.size;
@@ -24,6 +28,8 @@ export function createProxySetGetter(transform = v=> v) {
         trigger(this, value, value, undefined);
         // set 只需触发size动作
         trigger(this, "size", oldSize, oldSize - 1);
+        // 触发 set 整体的 effect, 如果有的话
+        this?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
       }
       // 返回操作结果 true | false
       return isDeleted;
@@ -35,30 +41,37 @@ export function createProxySetGetter(transform = v=> v) {
       if (length > 0) {
         let actions = [];
         // 已有项的动作添加到数组中，在删除后触发
-        this.forEach((value)=> {
-          actions.push(()=> trigger(this, value, value, undefined));
+        this.forEach((value) => {
+          actions.push(() => trigger(this, value, value, undefined));
         });
 
         setPrototype.clear.call(this);
         // 运行所有项绑定的动作
-        actions.forEach(fn=> fn());
+        actions.forEach(fn => fn());
         // 清理之后尺寸改变触发size动作
         trigger(this, "size", length, 0);
+        // 触发 set 整体的 effect, 如果有的话
+        this?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
       }
     },
     has(value) {
       let isHad = setPrototype.has.call(this, value);
       track(this, value, defaultDepend);
       return isHad;
+    },
+    [Symbol.iterator]() {
+      track(this, Symbol.iterator, defaultDepend);
+      operateEffects.setEffects(this);
+      return setPrototype[Symbol.iterator].call(this);
     }
   };
   return function proxySetGetter(target, key) {
     // 如果实例上不存在属性，且访问的是set的标准方法,则返回变异方法
-    if(!target.hasOwnProperty(key)) {
-      if(setMethods.hasOwnProperty(key)) {
+    if (!target.hasOwnProperty(key)) {
+      if (setMethods.hasOwnProperty(key)) {
         return setMethods[key].bind(target);
       }
-      if(setOtherMethodNames.includes(key)) {
+      if (setOtherMethodNames.includes(key)) {
         return target[key].bind(target);
       }
     }

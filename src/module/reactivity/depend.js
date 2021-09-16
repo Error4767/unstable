@@ -23,8 +23,8 @@ class Watcher {
 // 用于在对象上创建effects并且存放依赖
 const operateEffects = {
   effectsIdentify: '__effects',
-  // 设置对象的__effects属性指向依赖中的effects
-  setEffects(target, map) {
+  // 设置对象的__effects属性指向依赖中的effects, 如果没有传入map就自动在depMap中获取
+  setEffects(target, map = getMap(target)) {
     if (!target[this.effectsIdentify]) {
       Object.defineProperty(target, this.effectsIdentify, {
         value: map,
@@ -46,6 +46,8 @@ const defaultClearDepend = () => (activeEffects.pop());
 
 // WeakMap在对象清除时自动释放对应依赖
 const depMaps = new WeakMap();
+
+setTimeout(()=> console.log(depMaps))
 
 // 获取map的函数,从depMaps中
 function getMap(target) {

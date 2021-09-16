@@ -1,4 +1,4 @@
-import { track, trigger, defaultDepend } from "./depend.js";
+import { track, trigger, defaultDepend, operateEffects } from "./depend.js";
 
 import { proxyGetter, getValue } from "./operators.js";
 
@@ -11,8 +11,7 @@ let mapOtherMethodNames = [
   "forEach",
   "keys",
   "values",
-  "entries",
-  Symbol.iterator
+  "entries"
 ];
 
 // proxy map handler getter
@@ -35,7 +34,8 @@ function createProxyMapGetter(transform = v => v) {
         const operationState = isRef(oldValue) ? Reflect.set(oldValue, 'value', newValue) : mapPrototype.set.call(this, key, value);
 
         trigger(this, key, oldValue, newValue);
-
+        // 触发 map 整体的 effect, 如果有的话
+        this?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
         return operationState;
       }
     },
@@ -51,6 +51,8 @@ function createProxyMapGetter(transform = v => v) {
         trigger(this, key, oldValue, undefined);
         // 触发size动作
         trigger(this, "size", oldSize, oldSize - 1);
+        // 触发 map 整体的 effect, 如果有的话
+        this?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
       }
       // 返回操作结果 true | false
       return isDeleted;
@@ -71,12 +73,19 @@ function createProxyMapGetter(transform = v => v) {
         actions.forEach(fn=> fn());
         // 清理之后尺寸改变触发size动作
         trigger(this, "size", length, 0);
+        // 触发 map 整体的 effect, 如果有的话
+        this?.[operateEffects.effectsIdentify]?.forEach(dep => dep.notify());
       }
     },
     has(key) {
       let value = mapPrototype.has.call(this, key);
       track(this, key, defaultDepend);
       return value;
+    },
+    [Symbol.iterator]() {
+      track(this, Symbol.iterator, defaultDepend);
+      operateEffects.setEffects(this);
+      return mapPrototype[Symbol.iterator].call(this);
     }
   };
 
