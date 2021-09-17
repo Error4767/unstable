@@ -47,8 +47,6 @@ const defaultClearDepend = () => (activeEffects.pop());
 // WeakMap在对象清除时自动释放对应依赖
 const depMaps = new WeakMap();
 
-setTimeout(()=> console.log(depMaps))
-
 // 获取map的函数,从depMaps中
 function getMap(target) {
   let map;
