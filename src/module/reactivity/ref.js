@@ -96,6 +96,8 @@ function toRefs(rawObject) {
 }
 
 export {
+  REF_IDENTIFY,
+  MEMOIZED_IDENTIFY,
   ref,
   isRef,
   toRef,

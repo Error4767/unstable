@@ -5,13 +5,13 @@ import { watch } from './watch.js';
 import { ref } from './ref.js';
 import { Watcher } from './depend.js';
 
-const computedIdentify = "__isComputed";
+const COMPUTED_IDENTIFY = "__isComputed";
 
 function computed(getter, options) {
   if (typeof getter === 'function') {
     let computedRef = ref(undefined, getter);
     // 设置标识符
-    setIdentify(computedRef, computedIdentify);
+    setIdentify(computedRef, COMPUTED_IDENTIFY);
 
     let refresh = new Watcher(()=> computedRef.update());
     // 包装之后的Getter,在每次重新计算的时候再次收集依赖（关于数组依赖问题）
@@ -32,5 +32,6 @@ function computed(getter, options) {
 }
 
 export {
+  COMPUTED_IDENTIFY,
   computed
 }

@@ -1,13 +1,13 @@
 import { isObject, setIdentify } from './utils.js';
 
-const readonlyIdentify = '__isReadonly';
+const READONLY_IDENTIFY = '__isReadonly';
 
 function isReadonly(obj) {
-  return obj[readonlyIdentify];
+  return obj[READONLY_IDENTIFY];
 }
 
 function shallowReadonly(obj) {
-  setIdentify(obj, readonlyIdentify);
+  setIdentify(obj, READONLY_IDENTIFY);
   Object.freeze(obj);
   return obj;
 }
@@ -24,6 +24,7 @@ function readonly(obj) {
 }
 
 export {
+  READONLY_IDENTIFY,
   readonly,
   shallowReadonly,
   isReadonly

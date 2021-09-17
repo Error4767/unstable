@@ -18,10 +18,10 @@ import { isReadonly } from './readonly.js';
 
 import { isRef } from './ref.js';
 
-const reactiveIdentify = '__isReactive';
+const REACTIVE_IDENTIFY = '__isReactive';
 
 function isReactive(obj) {
-  return isObject(obj) ? (obj[reactiveIdentify] ? true : false) : false;
+  return isObject(obj) ? (obj[REACTIVE_IDENTIFY] ? true : false) : false;
 }
 
 // 创建handlers的函数
@@ -64,7 +64,7 @@ function createReactiveObject(obj) {
   // 根据类型选择对应handlers
   let handler = objType === "Map" ? proxyMapHandlers : ( objType === "Set" ? proxySetHandlers : proxyDefaultHandlers);
   // 设置标识
-  setIdentify(obj, reactiveIdentify);
+  setIdentify(obj, REACTIVE_IDENTIFY);
   // 数组额外处理
   if (Array.isArray(obj)) {
     let map = getMap(obj);
@@ -94,6 +94,7 @@ function reactive(obj) {
 }
 
 export {
+  REACTIVE_IDENTIFY,
   reactive,
   shallowReactive,
   isReactive,

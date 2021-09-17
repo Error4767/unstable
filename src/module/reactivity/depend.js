@@ -1,3 +1,17 @@
+// 识别特殊属性, 用于在下面 track 中排除（这些标记是不需要依赖收集的，取消可以提高性能）
+import { REF_IDENTIFY, MEMOIZED_IDENTIFY } from "./ref.js";
+import { REACTIVE_IDENTIFY } from "./reactive.js";
+import { READONLY_IDENTIFY }from "./readonly.js";
+import { COMPUTED_IDENTIFY } from "./computed";
+
+const SPECIAL_ATTRIBUTES = [
+  REF_IDENTIFY,
+  MEMOIZED_IDENTIFY,
+  REACTIVE_IDENTIFY,
+  READONLY_IDENTIFY,
+  COMPUTED_IDENTIFY
+];
+
 class Dep {
   constructor() {
     // Set不会重复
@@ -65,8 +79,8 @@ function track(target, key, depend) {
   // depend获取观察者(如果有的话),并放入map中
   const dep = typeof depend === 'function' && depend(target, key);
   let map = getMap(target);
-  // 添加依赖到map中
-  if (dep) {
+  // 添加依赖到map中, 排除特殊属性
+  if (dep && !SPECIAL_ATTRIBUTES.includes(key)) {
     if (map.has(key)) {
       map.get(key).add(dep);
     } else {
