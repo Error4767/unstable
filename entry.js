@@ -37,6 +37,8 @@ export {
 
 export { compileXMLToAST } from './src/module/compileXML.js';
 
+export { schedulePriorityCallback } from "./src/module/scheduler/scheduler.js";
+
 export {
 	Stack,
 	Queue,
