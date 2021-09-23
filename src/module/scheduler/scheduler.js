@@ -64,9 +64,7 @@ function compareFunction(item1, item2) {
 // 用比较函数初始化堆
 const taskQueue = new Heap(compareFunction);
 
-// 消息循环开启
-let messageCycleEnable = false;
-// 任务调度运行中
+// 任务调度进行中
 let taskScheduling = false;
 
 let taskId = 0;
@@ -106,23 +104,10 @@ function scheduleTask() {
             }
         } else {
             taskScheduling = false;
-            requestAnimationFrame(messageCycleCallback);
+            // 下一帧再开始调度
+            requestAnimationFrame(scheduleTask);
         }
     });
-}
-
-function messageCycleCallback() {
-    // 有剩余任务
-    if (taskQueue.length > 0) {
-        !taskScheduling && scheduleTask();
-    } else {
-        messageCycleEnable = false;
-    }
-
-    // 循环开启再进入下个循环
-    if (messageCycleEnable) {
-        requestAnimationFrame(messageCycleCallback);
-    }
 }
 
 function schedulePriorityCallback(priorityLevel, callback) {
@@ -138,10 +123,6 @@ function schedulePriorityCallback(priorityLevel, callback) {
         taskId: taskId++
     };
 
-    // 如果消息循环尚未开启，设置开启
-    if (!messageCycleEnable) {
-        messageCycleEnable = true;
-    }
     // 加入任务队列
     taskQueue.push(task);
     // 如果没有开始任务调度，开始任务调度
