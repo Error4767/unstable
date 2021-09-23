@@ -2,7 +2,7 @@
 import { REF_IDENTIFY, MEMOIZED_IDENTIFY } from "./ref.js";
 import { REACTIVE_IDENTIFY } from "./reactive.js";
 import { READONLY_IDENTIFY }from "./readonly.js";
-import { COMPUTED_IDENTIFY } from "./computed";
+import { COMPUTED_IDENTIFY } from "./computed.js";
 
 const SPECIAL_ATTRIBUTES = [
   REF_IDENTIFY,
