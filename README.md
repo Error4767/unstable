@@ -293,7 +293,7 @@ compileXMLToAST(`
 当同时有多个任务，高优先级任务会优先执行，低优先级任务会被排在后面  
 ##### schedulePriorityCallback
 (number, function) -> void  
-参数：(优先级变量, 回调函数, 选项)
+参数：(优先级变量, 回调函数)
 
 优先级变量导出  
 immediatePriority 立即执行，过期时间-1ms  
