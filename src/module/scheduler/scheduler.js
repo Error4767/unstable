@@ -57,7 +57,7 @@ function compareFunction(item1, item2) {
     const item2Time = item2.expirationTime
     // 有时精度不高，只能精确到毫秒，此时判断任务id决定先后;
     if (item1Time === item2Time) {
-        return item1.taskId >= item2.taskId;
+        return item1.taskId > item2.taskId;
     }
     return item1Time <= item2Time;
 }
