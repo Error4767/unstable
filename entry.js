@@ -27,7 +27,7 @@ export {
 	reactive,
 	shallowReactive,
 	isReactive,
-	readonly, 
+	readonly,
 	shallowReadonly,
 	isReadonly,
 	watch,
@@ -37,7 +37,14 @@ export {
 
 export { compileXMLToAST } from './src/module/compileXML.js';
 
-export { schedulePriorityCallback } from "./src/module/scheduler/scheduler.js";
+export {
+	schedulePriorityCallback,
+	immediatePriority,
+	userBlockingPriority,
+	normalPriority,
+	lowPriority,
+	idlePriority,
+} from "./src/module/scheduler/scheduler.js";
 
 export {
 	Stack,

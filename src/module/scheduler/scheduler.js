@@ -125,14 +125,9 @@ function messageCycleCallback() {
     }
 }
 
-function schedulePriorityCallback(priorityLevel, callback, { delay } = {}) {
+function schedulePriorityCallback(priorityLevel, callback) {
     const currentTime = getCurrentTime();
     let startTime = currentTime;
-
-    // 如果延迟执行
-    if (delay) {
-        startTime += delay;
-    }
 
     const timeout = timeoutForTaskPriorityLevel(priorityLevel);
     const expirationTime = startTime + timeout;
@@ -156,5 +151,10 @@ function schedulePriorityCallback(priorityLevel, callback, { delay } = {}) {
 }
 
 export {
+    immediatePriority,
+    userBlockingPriority,
+    normalPriority,
+    lowPriority,
+    idlePriority,
     schedulePriorityCallback
 }

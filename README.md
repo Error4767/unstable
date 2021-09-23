@@ -271,7 +271,7 @@ compileXMLToAST(`
 
 <br />
 
-#### reactivity相关函数
+#### reactivity 相关
 >这些功能与vue reactivity功能大致相同，
 实现了
   ref,
@@ -286,3 +286,23 @@ compileXMLToAST(`
 	watchEffect,
 	computed  
 参考[vue reactivity 文档](https://v3.cn.vuejs.org/guide/reactivity-fundamentals.html#%E5%A3%B0%E6%98%8E%E5%93%8D%E5%BA%94%E5%BC%8F%E7%8A%B6%E6%80%81)
+
+#### scheduler 相关
+用于根据优先级调度任务的执行，减少因执行卡顿导致浏览器阻塞  
+当任务未到过期时间，如果浏览器需要渲染，则中断调度，待浏览器渲染后，任务将继续执行，这可以避免阻塞用户交互  
+当同时有多个任务，高优先级任务会优先执行，低优先级任务会被排在后面  
+##### schedulePriorityCallback
+(number, function) -> void  
+参数：(优先级变量, 回调函数, 选项)
+
+优先级变量导出  
+immediatePriority 立即执行，过期时间-1ms  
+
+userBlockingPriority 用户阻塞优先级，250ms过期时间  
+
+normalPriority 一般优先级，过期时间 1000ms  
+
+lowPriority 低优先级，过期时间 10000ms 
+
+idlePriority 空闲优先级，过期时间 1073741823ms (v8最大整数)
+  
