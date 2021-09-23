@@ -50,14 +50,58 @@ const getCurrentTime = (() => {
     }
 })();
 
+// 使用自定义的 requestIdleCallback
+const requestIdleCallback = (()=> {
+    let frameDeadline = 0; // 帧结束时间
+    const messageChannel = new MessageChannel;
+    let _callbacks = [];
+
+    let { port1, port2 } = messageChannel;
+
+    function timeRemaining() {
+        return frameDeadline - getCurrentTime();
+    }
+
+    port1.onmessage = function() {
+        // 检测是否有剩余时间
+        if(timeRemaining() > 0) {
+            // 有剩余时间，调用回调
+            _callbacks.length > 0 && _callbacks.shift()({
+                timeRemaining,
+            });
+        }else {
+            // 没有剩余时间,等待空闲时调用
+            requestIdleCallback();
+        }
+    }
+
+    return function requestIdleCallback(callback) {
+        // 添加到队列中,如果有 callback 的话
+        callback && _callbacks.push(callback);
+        // 时间不足了，下一帧执行
+        if(timeRemaining() <= 0) {
+            requestAnimationFrame(()=> {
+                // 如果没有剩余时间，就重置为 16ms, 因为上一帧结束了
+                if(timeRemaining() <= 0) {// 避免一帧中重复设置
+                    frameDeadline = getCurrentTime() + 16; // 加上 16ms,60fps 才够流畅
+                }
+                requestIdleCallback();
+            });
+        }else {
+            // 时间足够，直接通知消息通道执行
+            port2.postMessage("");
+        }
+    }
+})();
+
 // 优先级队列（小顶堆）
 // 比较函数
 function compareFunction(item1, item2) {
     const item1Time = item1.expirationTime;
     const item2Time = item2.expirationTime
-    // 有时精度不高，只能精确到毫秒，此时判断任务id决定先后;
+    // 有时精度不高，只能精确到毫秒，此时判断任务id决定先后,id 小的为先（先添加的任务）
     if (item1Time === item2Time) {
-        return item1.taskId > item2.taskId;
+        return item1.taskId < item2.taskId;
     }
     return item1Time <= item2Time;
 }
@@ -94,7 +138,7 @@ function scheduleTask() {
 
     // 没有过期任务
     requestIdleCallback((idleDeadline) => {
-        if (idleDeadline.timeRemaining() >= 3) {
+        if (idleDeadline.timeRemaining() > 0) {
             task = taskQueue.pop();
             if (task) {
                 task.callback();
@@ -105,7 +149,7 @@ function scheduleTask() {
         } else {
             taskScheduling = false;
             // 下一帧再开始调度
-            requestAnimationFrame(scheduleTask);
+            requestIdleCallback(scheduleTask);
         }
     });
 }
