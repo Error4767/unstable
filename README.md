@@ -296,13 +296,13 @@ compileXMLToAST(`
 参数：(优先级变量, 回调函数)
 
 优先级变量导出  
-immediatePriority 立即执行，过期时间-1ms  
+immediatePriority 立即执行，过期时间 -1ms  
 
-userBlockingPriority 用户阻塞优先级，250ms过期时间  
+userBlockingPriority 用户阻塞优先级，过期时间 250ms  
 
 normalPriority 一般优先级，过期时间 1000ms  
 
-lowPriority 低优先级，过期时间 10000ms 
+lowPriority 低优先级，过期时间 10000ms  
 
-idlePriority 空闲优先级，过期时间 1073741823ms (v8最大整数)
+idlePriority 空闲优先级，过期时间 1073741823ms (v8最大整数)  
   

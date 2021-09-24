@@ -1,4 +1,5 @@
 import { Heap } from "./Heap.js";
+import { Queue } from "./Queue.js";
 
 // 优先级
 const immediatePriority = 1;
@@ -51,10 +52,10 @@ const getCurrentTime = (() => {
 })();
 
 // 使用自定义的 requestIdleCallback
-const requestIdleCallback = (()=> {
+const requestIdleCallback = (() => {
     let frameDeadline = 0; // 帧结束时间
     const messageChannel = new MessageChannel;
-    let _callbacks = [];
+    let _callbackQueue = new Queue();
 
     let { port1, port2 } = messageChannel;
 
@@ -62,32 +63,44 @@ const requestIdleCallback = (()=> {
         return frameDeadline - getCurrentTime();
     }
 
-    port1.onmessage = function() {
+    port1.onmessage = function () {
         // 检测是否有剩余时间
-        if(timeRemaining() > 0) {
+        if (timeRemaining() > 0) {
             // 有剩余时间，调用回调
-            _callbacks.length > 0 && _callbacks.shift()({
+            _callbackQueue.size() > 0 && _callbackQueue.dequeue()({
                 timeRemaining,
             });
-        }else {
-            // 没有剩余时间,等待空闲时调用
-            requestIdleCallback();
+        } else {
+            if (document.visibilityState === "visible") {
+                // 没有剩余时间,等待空闲时调用
+                requestIdleCallback();
+            } else {
+                // 页面在后台，不需要绘制，直接调用回调
+                _callbackQueue.size() > 0 && _callbackQueue.dequeue()({
+                    timeRemaining,
+                });
+            }
         }
     }
 
     return function requestIdleCallback(callback) {
         // 添加到队列中,如果有 callback 的话
-        callback && _callbacks.push(callback);
+        callback && _callbackQueue.enqueue(callback);
         // 时间不足了，下一帧执行
-        if(timeRemaining() <= 0) {
-            requestAnimationFrame(()=> {
-                // 如果没有剩余时间，就重置为 16ms, 因为上一帧结束了
-                if(timeRemaining() <= 0) {// 避免一帧中重复设置
-                    frameDeadline = getCurrentTime() + 16; // 加上 16ms,60fps 才够流畅
-                }
-                requestIdleCallback();
-            });
-        }else {
+        if (timeRemaining() <= 0) {
+            if (document.visibilityState === "visible") {
+                requestAnimationFrame(() => {
+                    // 如果没有剩余时间，就重置为 16ms, 因为上一帧结束了
+                    if (timeRemaining() <= 0) {// 避免一帧中重复设置
+                        frameDeadline = getCurrentTime() + 16; // 加上 16ms,60fps 才够流畅
+                    }
+                    requestIdleCallback();
+                });
+            } else {
+                // 页面在后台，不需要绘制，通知消息通道执行
+                port2.postMessage("");
+            }
+        } else {
             // 时间足够，直接通知消息通道执行
             port2.postMessage("");
         }
