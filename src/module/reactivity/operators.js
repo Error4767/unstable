@@ -17,12 +17,32 @@ function handleArray(arr, map) {
   }
 }
 
+const arrayPrototype = Array.prototype;
+// array 所有方法添加迭代依赖收集器
+const arrayMethods = Reflect.ownKeys(Array.prototype)
+  .filter(key => typeof arrayPrototype[key] === "function")
+  .reduce((arrayMethodsObject, functionName)=> {
+    arrayMethodsObject[functionName] = function (...args) {
+      // 调用数组对应的方法
+      return arrayPrototype[functionName].apply(this, args);
+    }
+    return arrayMethodsObject;
+  }, {});
+// at不需要添加迭代依赖收集器，目前不支持捕获用at方法获取的数组的值
+delete arrayMethods.at;
+
 // proxy getter
 function proxyGetter(target, key) {
   const { map } = track(target, key, defaultDepend);
   // 是数组则处理一下
   Array.isArray(target[key]) && handleArray(target[key], map);
   let value = getValue(Reflect.get(target, key));
+  // 获取的是数组方法
+  if (Array.isArray(target) && typeof value === "function" && arrayMethods.hasOwnProperty(key)) {
+    // 数据本身的迭代器依赖收集
+    track(target, Symbol.iterator, defaultDepend);
+    return arrayMethods[key];
+  }
   return value;
 }
 
@@ -33,7 +53,7 @@ function createProxySetter(transform = v => v) {
     const oldValue = Reflect.get(target, key);
     if (oldValue !== value) {
       const newValue = transform(value);
-      
+
       // 是ref设置其value，不是ref直接设置其值
       const operationState = isRef(target[key]) ? Reflect.set(target[key], 'value', newValue) : Reflect.set(target, key, newValue);
 
