@@ -17,19 +17,11 @@ function handleArray(arr, map) {
   }
 }
 
-const arrayPrototype = Array.prototype;
-// array 所有方法添加迭代依赖收集器
-const arrayMethods = Reflect.ownKeys(Array.prototype)
-  .filter(key => typeof arrayPrototype[key] === "function")
-  .reduce((arrayMethodsObject, functionName)=> {
-    arrayMethodsObject[functionName] = function (...args) {
-      // 调用数组对应的方法
-      return arrayPrototype[functionName].apply(this, args);
-    }
-    return arrayMethodsObject;
-  }, {});
-// at不需要添加迭代依赖收集器，目前不支持捕获用at方法获取的数组的值
-delete arrayMethods.at;
+// 被排除的方法，目前暂不支持捕获数组 at 方法
+const excludeMethods = ["at"];
+// array 方法添加迭代依赖收集器
+const arrayMethodNames = Reflect.ownKeys(Array.prototype)
+  .filter(key => typeof Array.prototype[key] === "function" && !excludeMethods.includes(key));
 
 // proxy getter
 function proxyGetter(target, key) {
@@ -37,11 +29,15 @@ function proxyGetter(target, key) {
   // 是数组则处理一下
   Array.isArray(target[key]) && handleArray(target[key], map);
   let value = getValue(Reflect.get(target, key));
-  // 获取的是数组方法
-  if (Array.isArray(target) && typeof value === "function" && arrayMethods.hasOwnProperty(key)) {
-    // 数据本身的迭代器依赖收集
-    track(target, Symbol.iterator, defaultDepend);
-    return arrayMethods[key];
+  // 获取的是受支持的数组方法
+  if (Array.isArray(target) && typeof value === "function" && arrayMethodNames.includes(key)) {
+    // 返回带有依赖收集的版本
+    return function (...params) {
+      // 迭代器依赖收集,这里是原始结构，而不是proxy
+      track(target, Symbol.iterator, defaultDepend);
+      // 从this调用才可触发proxy操作拦截
+      return value.apply(this, params);
+    }
   }
   return value;
 }
