@@ -38,6 +38,7 @@ export {
 export { compileXMLToAST } from './src/module/compileXML.js';
 
 export {
+	scheduleExpireCallback,
 	schedulePriorityCallback,
 	immediatePriority,
 	userBlockingPriority,

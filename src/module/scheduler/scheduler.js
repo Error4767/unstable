@@ -167,12 +167,10 @@ function scheduleTask() {
     });
 }
 
-function schedulePriorityCallback(priorityLevel, callback) {
-    const currentTime = getCurrentTime();
-    let startTime = currentTime;
-
-    const timeout = timeoutForTaskPriorityLevel(priorityLevel);
-    const expirationTime = startTime + timeout;
+function scheduleExpireCallback(expirationTime, callback) {
+    if(typeof expirationTime !== "number") {
+        throw new TypeError("expiration time is a not number");
+    }
 
     const task = {
         expirationTime,
@@ -188,11 +186,21 @@ function schedulePriorityCallback(priorityLevel, callback) {
     }
 }
 
+function schedulePriorityCallback(priorityLevel, callback) {
+    const currentTime = getCurrentTime();
+    let startTime = currentTime;
+
+    const timeout = timeoutForTaskPriorityLevel(priorityLevel);
+    const expirationTime = startTime + timeout;
+    scheduleExpireCallback(expirationTime, callback);
+}
+
 export {
     immediatePriority,
     userBlockingPriority,
     normalPriority,
     lowPriority,
     idlePriority,
+    scheduleExpireCallback,
     schedulePriorityCallback
 }
