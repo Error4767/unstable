@@ -2,7 +2,6 @@
 const WHITE_SPACE = /\s/;// 空格
 const PAREN = /(<|>)/;
 const CHAR = /[\s\S]/;// 任意字符
-const NUMBERS = /[0-9\.]/;
 const STRING_SYMBOL = /('|")/;
 const SLASH = /[\\\/]/;
 const UNALLOWED_NAME = /[^A-Za-z0-9_$-]/;// 检测非法名称
@@ -76,29 +75,12 @@ function tokenizer(input) {
       inTag = false;
     } else {
       if (inTag) {
-        if (char === '=') {
-          tokens.push({
-            type: 'equal',
-            value: char
-          });
-        } else if (WHITE_SPACE.test(char)) {
-
+        if (WHITE_SPACE.test(char)) {
+          // 空格跳过
         } else if (STRING_SYMBOL.test(char)) {
           tokens.push({
             type: 'string',
             value: parseStringToken()
-          });
-        } else if (NUMBERS.test(char)) {
-          let value = '';
-          while (char && NUMBERS.test(char)) {
-            value += char;
-            char = input[++current];
-          }
-          // 减去 以免下面在++就是加了2
-          current--;
-          tokens.push({
-            type: 'number',
-            value
           });
         } else if (CHAR.test(char)) {
           // 记录尖括号数量几个开始对应几个结束，防止内部尖括号结束外部标签
@@ -160,13 +142,7 @@ function parseToNode(tokens) {
       current++;
       return;
     }
-    if (token.type === 'number') {
-      current++;
-      return {
-        type: 'NumberLiteral',
-        value: token.value
-      };
-    } else if (token.type === 'string') {
+    if (token.type === 'string') {
       current++;
       return {
         type: 'StringLiteral',
@@ -205,6 +181,7 @@ function parseToNode(tokens) {
 
       token = tokens[++current];
       while (token && token.value !== '>') {
+        // 解析普通标签
         const node = parse();
         node && tag.props.push(node);
         token = tokens[current];
