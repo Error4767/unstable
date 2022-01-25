@@ -22,25 +22,25 @@ class Promise {
   }
   resolve(result) {
     if (this.status === PENDING) {
-      this.status = FULFILLED;
-    } else {
-      return;
+      setTimeout(() => {
+        this.result = result;
+        this.status = FULFILLED;
+        this.onFulfilledCallbacks.forEach((cb) => {
+          cb(this.result);
+        });
+      });
     }
-    this.result = result;
-    this.onFulfilledCallbacks.forEach((cb) => {
-      cb(this.result);
-    });
   }
   reject(reason) {
     if (this.status === PENDING) {
-      this.status = REJECTED;
-    } else {
-      return;
+      setTimeout(() => {
+        this.status = REJECTED;
+        this.reason = reason;
+        this.onRejectedCallbacks.forEach((cb) => {
+          cb(this.reason);
+        });
+      });
     }
-    this.reason = reason;
-    this.onRejectedCallbacks.forEach((cb) => {
-      cb(this.reason);
-    });
   }
   bindThis() {
     this.resolve = this.resolve.bind(this);
@@ -71,7 +71,7 @@ class Promise {
         setTimeout(() => {
           try {
             const x = onFulfilled(self.result);
-            Promise.resolvePromise(null, x, resolve, reject);
+            Promise.resolvePromise(newPromise, x, resolve, reject);
           } catch (err) {
             reject(err);
           }
@@ -81,7 +81,7 @@ class Promise {
         setTimeout(() => {
           try {
             const x = onRejected(self.reason);
-            Promise.resolvePromise(null, x, resolve, reject);
+            Promise.resolvePromise(newPromise, x, resolve, reject);
           } catch (err) {
             reject(err);
           }
@@ -106,25 +106,32 @@ class Promise {
   }
   static resolvePromise(newPromise, x, resolve, reject) {
     if (newPromise === x) {
-      reject(new TypeError("Chaining cycle detected for promise"));
+      return reject(new TypeError("Chaining cycle detected for promise"));
     }
-    let called = false;
     if (x instanceof Promise) {
-      x.then(
-        (result) => {
-          Promise.resolvePromise(newPromise, result, resolve, reject);
-        },
-        (reason) => {
-          reject(reason);
-        }
-      );
+      if (x.status === PENDING) {
+        x.then(y => {
+          Promise.resolvePromise(newPromise, y, resolve, reject)
+        }, reject);
+      } else if (x.status === FULFILLED) {
+        resolve(x.result);
+      } else if (x.status === REJECTED) {
+        reject(x.reason);
+      }
     } else if (
       x !== null &&
       (typeof x === "object" || typeof x === "function")
     ) {
+      let then;
       try {
-        let then = x.then;
-        if (typeof x.then === "function") {
+        then = x.then;
+      } catch (err) {
+        reject(err);
+      }
+
+      if (typeof then === "function") {
+        let called = false;
+        try {
           then.call(
             x,
             (result) => {
@@ -141,20 +148,16 @@ class Promise {
               called = true;
               reject(reason);
             }
-          );
-        } else {
+          )
+        } catch (err) {
           if (called) {
             return;
           }
           called = true;
-          resolve(x);
+          reject(err);
         }
-      } catch (err) {
-        if (called) {
-          return;
-        }
-        called = true;
-        reject(err);
+      } else {
+        resolve(x);
       }
     } else {
       resolve(x);
