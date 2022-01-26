@@ -49,24 +49,8 @@ class Promise {
   then(onFulfilled, onRejected) {
     onFulfilled = typeof onFulfilled === "function" ? onFulfilled : (result) => Promise.resolve(result);
     onRejected = typeof onRejected === "function" ? onRejected : (err) => Promise.reject(err);
-    let self = this;
-    let newPromise = new Promise((resolve, reject) => {
-      const onFulFulledCallbackFunction = () => {
-        try {
-          const x = onFulfilled(self.result);
-          Promise.resolvePromise(newPromise, x, resolve, reject);
-        } catch (err) {
-          reject(err);
-        }
-      };
-      const onRejectedCallbackFunction = () => {
-        try {
-          const x = onRejected(self.reason);
-          Promise.resolvePromise(newPromise, x, resolve, reject);
-        } catch (err) {
-          reject(err);
-        }
-      };
+    const self = this;
+    const newPromise = new Promise((resolve, reject) => {
       if (self.status === FULFILLED) {
         setTimeout(() => {
           try {
@@ -88,8 +72,22 @@ class Promise {
         });
       }
       if (self.status === PENDING) {
-        self.onFulfilledCallbacks.push(onFulFulledCallbackFunction);
-        self.onRejectedCallbacks.push(onRejectedCallbackFunction);
+        self.onFulfilledCallbacks.push(() => {
+          try {
+            const x = onFulfilled(self.result);
+            Promise.resolvePromise(newPromise, x, resolve, reject);
+          } catch (err) {
+            reject(err);
+          }
+        });
+        self.onRejectedCallbacks.push(() => {
+          try {
+            const x = onRejected(self.reason);
+            Promise.resolvePromise(newPromise, x, resolve, reject);
+          } catch (err) {
+            reject(err);
+          }
+        });
       }
     });
     return newPromise;
