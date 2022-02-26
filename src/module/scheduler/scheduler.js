@@ -54,7 +54,7 @@ const getCurrentTime = (() => {
 // 使用自定义的 requestIdleCallback
 const requestIdleCallback = (() => {
     let frameDeadline = 0; // 帧结束时间
-    const messageChannel = new MessageChannel;
+    const messageChannel = new MessageChannel();
     let _callbackQueue = new Queue();
 
     let { port1, port2 } = messageChannel;
