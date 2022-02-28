@@ -1,14 +1,11 @@
 import { isObject, typeOf, setIdentify } from './utils.js';
 
-import { getMap } from './depend.js';
-
 import {
   proxyGetter,
   createProxySetter,
   proxyOwnKeysHandler,
   proxyDeleteHandler,
   proxyHasHandler,
-  handleArray,
 } from './operators.js';
 
 import { createProxyMapGetter } from "./mapHandlers.js";
@@ -80,11 +77,6 @@ function createReactiveObject(obj, isShallow = false) {
 
   // 设置标识
   setIdentify(obj, REACTIVE_IDENTIFY);
-  // 数组额外处理
-  if (Array.isArray(obj)) {
-    let map = getMap(obj);
-    handleArray(obj, map);
-  }
   return new Proxy(obj, handler);
 }
 

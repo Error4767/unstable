@@ -1,4 +1,4 @@
-import { track, trigger, defaultDepend, operateEffects } from "./depend.js";
+import { track, trigger } from "./depend.js";
 
 import { proxyGetter, getValue } from "./operators.js";
 
@@ -18,10 +18,8 @@ let mapOtherMethodNames = [
 function createProxyMapGetter(transform = v => v) {
   const mapMethods = {
     get(key) {
-      let value = mapPrototype.get.call(this, key);
-      const { map } = track(this, key, defaultDepend);
-      // 是数组则处理一下
-      Array.isArray(value) && handleArray(value, map);
+      const value = mapPrototype.get.call(this, key);
+      track(this, key);
       return getValue(value);
     },
     set(key, value) {
@@ -34,8 +32,8 @@ function createProxyMapGetter(transform = v => v) {
         const operationState = isRef(oldValue) ? Reflect.set(oldValue, 'value', newValue) : mapPrototype.set.call(this, key, value);
 
         trigger(this, key, oldValue, newValue);
-        // 触发迭代操作的 effect, 如果有的话
-        this?.[operateEffects.effectsIdentify]?.get(Symbol.iterator)?.notify();
+        // 触发迭代操作的 effect
+        trigger(this, Symbol.iterator);
         return operationState;
       }
     },
@@ -51,8 +49,8 @@ function createProxyMapGetter(transform = v => v) {
         trigger(this, key, oldValue, undefined);
         // 触发size动作
         trigger(this, "size", oldSize, oldSize - 1);
-        // 触发迭代操作的 effect, 如果有的话
-        this?.[operateEffects.effectsIdentify]?.get(Symbol.iterator)?.notify();
+        // 触发迭代操作的 effect
+        trigger(this, Symbol.iterator);
       }
       // 返回操作结果 true | false
       return isDeleted;
@@ -64,28 +62,27 @@ function createProxyMapGetter(transform = v => v) {
       if (length > 0) {
         let actions = [];
         // 已有属性的动作添加到数组中，在删除后触发
-        this.forEach((value, key)=> {
-          actions.push(()=> trigger(this, key, value, undefined));
+        this.forEach((value, key) => {
+          actions.push(() => trigger(this, key, value, undefined));
         });
-        
+
         mapPrototype.clear.call(this);
         // 运行所有属性绑定的动作
-        actions.forEach(fn=> fn());
+        actions.forEach(fn => fn());
         // 清理之后尺寸改变触发size动作
         trigger(this, "size", length, 0);
-        // 触发迭代操作的 effect, 如果有的话
-        this?.[operateEffects.effectsIdentify]?.get(Symbol.iterator)?.notify();
+        // 触发迭代操作的 effect
+        trigger(this, Symbol.iterator);
       }
     },
     has(key) {
       let value = mapPrototype.has.call(this, key);
-      track(this, key, defaultDepend);
+      track(this, key);
       return value;
     },
     [Symbol.iterator]() {
       // 收集依赖
-      track(this, Symbol.iterator, defaultDepend);
-      operateEffects.setEffects(this);
+      track(this, Symbol.iterator);
       return mapPrototype[Symbol.iterator].call(this);
     }
   };

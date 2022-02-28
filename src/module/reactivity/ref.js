@@ -1,6 +1,6 @@
 import { isObject, setIdentify, setMutableIdentify } from './utils.js';
 
-import { defaultDepend, track, trigger } from './depend.js';
+import { track, trigger } from './depend.js';
 
 // ref标识
 const REF_IDENTIFY = '__isRef';
@@ -32,7 +32,7 @@ function ref(rawValue, getter) {
 
   const refObject = {
     get value() {
-      track(this, 'value', defaultDepend);
+      track(this, 'value');
       // 没有记忆就计算一次，并记忆
       if (!this[MEMOIZED_IDENTIFY] && getter) {
         getter && (value = getter());

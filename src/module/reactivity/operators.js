@@ -1,20 +1,10 @@
-import { track, trigger, defaultDepend, getMap, operateEffects } from './depend.js';
+import { track, trigger } from './depend.js';
 
 import { isRef } from './ref.js';
 
 // 如果是ref类型，返回其value属性值，否则原值返回
 function getValue(value) {
   return isRef(value) ? value.value : value;
-}
-
-// 处理array使其方法也具有反应性
-function handleArray(arr, map) {
-  if (arr !== Array.prototype) {
-    // 设置依赖列表，便于数组操作
-    if (!arr[operateEffects.effectsIdentify]) {
-      operateEffects.setEffects(arr, map);
-    }
-  }
 }
 
 // 被排除的方法，目前暂不支持捕获数组 at 方法
@@ -25,16 +15,15 @@ const arrayMethodNames = Reflect.ownKeys(Array.prototype)
 
 // proxy getter
 function proxyGetter(target, key) {
-  const { map } = track(target, key, defaultDepend);
-  // 是数组则处理一下
-  Array.isArray(target[key]) && handleArray(target[key], map);
+  track(target, key);
+  // 获得value
   let value = getValue(Reflect.get(target, key));
   // 获取的是受支持的数组方法
   if (Array.isArray(target) && typeof value === "function" && arrayMethodNames.includes(key)) {
     // 返回带有依赖收集的版本
     return function (...params) {
       // 迭代器依赖收集,这里是原始结构，而不是proxy
-      track(target, Symbol.iterator, defaultDepend);
+      track(target, Symbol.iterator);
       // 从this调用才可触发proxy操作拦截
       return value.apply(this, params);
     }
@@ -54,8 +43,8 @@ function createProxySetter(transform = v => v) {
       const operationState = isRef(target[key]) ? Reflect.set(target[key], 'value', newValue) : Reflect.set(target, key, newValue);
 
       trigger(target, key, oldValue, newValue);
-      // 触发迭代操作的 effect, 如果有的话
-      target?.[operateEffects.effectsIdentify]?.get(Symbol.iterator)?.notify();
+      // 触发迭代操作的 effect
+      trigger(target, Symbol.iterator);
       return operationState;
     }
     return true;
@@ -65,11 +54,7 @@ function createProxySetter(transform = v => v) {
 // 捕获ownKeys类操作,Object.keys等
 function proxyOwnKeysHandler(target) {
   // 依赖收集
-  track(target, Symbol.iterator, defaultDepend);
-  const map = getMap(target);
-  if (map && !target[operateEffects.effectsIdentify]) {
-    operateEffects.setEffects(target, map);
-  }
+  track(target, Symbol.iterator);
   return Reflect.ownKeys(target);
 }
 
@@ -79,9 +64,8 @@ function proxyDeleteHandler(target, key) {
   const isDeleted = Reflect.deleteProperty(target, key);
   if (isDeleted) {
     trigger(target, key, oldValue, undefined);
-
-    // 触发迭代操作的 effect, 如果有的话
-    target?.[operateEffects.effectsIdentify]?.get(Symbol.iterator)?.notify();
+    // 触发迭代操作的 effect
+    trigger(target, Symbol.iterator);
   }
   return isDeleted;
 }
@@ -89,7 +73,7 @@ function proxyDeleteHandler(target, key) {
 // 适用于 in 操作符
 function proxyHasHandler(target, key) {
   // 收集依赖
-  track(target, key, defaultDepend);
+  track(target, key);
   // 返回 has 结果
   return Reflect.has(target, key);
 }
@@ -101,5 +85,4 @@ export {
   proxyDeleteHandler,
   proxyHasHandler,
   getValue,
-  handleArray
 }

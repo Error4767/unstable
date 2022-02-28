@@ -1,4 +1,4 @@
-import { track, trigger, defaultDepend, operateEffects } from "./depend.js";
+import { track, trigger } from "./depend.js";
 
 import { proxyGetter } from "./operators.js";
 
@@ -15,8 +15,8 @@ export function createProxySetGetter(transform = v => v) {
   let setMethods = {
     add(value) {
       setPrototype.add.call(this, value);
-      // 触发迭代操作的 effect, 如果有的话
-      this?.[operateEffects.effectsIdentify]?.get(Symbol.iterator)?.notify();
+      // 触发迭代操作的 effect
+      trigger(this, Symbol.iterator);
     },
     delete(value) {
       // 之前map的尺寸
@@ -28,8 +28,8 @@ export function createProxySetGetter(transform = v => v) {
         trigger(this, value, value, undefined);
         // set 只需触发size动作
         trigger(this, "size", oldSize, oldSize - 1);
-        // 触发迭代操作的 effect, 如果有的话
-        this?.[operateEffects.effectsIdentify]?.get(Symbol.iterator)?.notify();
+        // 触发迭代操作的 effect
+        trigger(this, Symbol.iterator);
       }
       // 返回操作结果 true | false
       return isDeleted;
@@ -50,19 +50,18 @@ export function createProxySetGetter(transform = v => v) {
         actions.forEach(fn => fn());
         // 清理之后尺寸改变触发size动作
         trigger(this, "size", length, 0);
-        // 触发迭代操作的 effect, 如果有的话
-        this?.[operateEffects.effectsIdentify]?.get(Symbol.iterator)?.notify();
+        // 触发迭代操作的 effect
+        trigger(this, Symbol.iterator);
       }
     },
     has(value) {
       let isHad = setPrototype.has.call(this, value);
-      track(this, value, defaultDepend);
+      track(this, value);
       return isHad;
     },
     [Symbol.iterator]() {
       // 依赖收集
-      track(this, Symbol.iterator, defaultDepend);
-      operateEffects.setEffects(this);
+      track(this, Symbol.iterator);
       return setPrototype[Symbol.iterator].call(this);
     }
   };
