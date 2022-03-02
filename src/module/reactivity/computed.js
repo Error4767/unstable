@@ -13,17 +13,10 @@ function computed(getter, options) {
     // 设置标识符
     setIdentify(computedRef, COMPUTED_IDENTIFY);
 
-    let refresh = new Watcher(()=> computedRef.update());
-    // 包装之后的Getter,在每次重新计算的时候再次收集依赖（关于数组依赖问题）
+    // 更新computed状态的函数
+    let refresh = () => computedRef.update();
     // 对应依赖改变触发ref更新
-    let packageGetter = ()=> {
-      let newValue;
-      watch(()=> (newValue = getter()), refresh, options);
-      return newValue;
-    };
-
-    // 设置为包装后的getter
-    computedRef.setGetter(packageGetter);
+    watch(getter, refresh, options);
 
     return computedRef;
   } else {

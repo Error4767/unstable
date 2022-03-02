@@ -19,6 +19,7 @@ function callGetters(dep) {
 }
 
 function watch(dep, effect, options = {}) {
+  const isEqual = dep === effect;
   const {
     // 设置depend并且运行getter(dep)
     runEffect = (watcher, dep) => {
@@ -28,10 +29,26 @@ function watch(dep, effect, options = {}) {
       callGetters(dep);
       // 收集完毕后清除
       defaultClearDepend();
-      options.immediate && effect(); // immediate属性true则立即运行一次effect
+      options.immediate && !isEqual && effect(); // immediate属性true则立即运行一次effect
     }
   } = options;
-  runEffect(effect instanceof Watcher ? effect : new Watcher(effect), dep);
+  let reactiveWatcher;
+  // 转化为带依赖收集的 effect，每次会尝试收集依赖，防止如条件运算之类的导致先前没有收集到依赖
+  const reactiveEffect = () => {
+    if (isEqual) {
+      // 如果相等则在运行的同时收集了依赖
+      runEffect(reactiveWatcher, dep);
+    }else {
+      // 不相等则需要运行副作用以及收集依赖
+      // 运行副作用
+      effect();
+      // 收集一次依赖
+      runEffect(reactiveWatcher, dep);
+    }
+  }
+  reactiveWatcher = new Watcher(reactiveEffect);
+  // 运行一次
+  reactiveEffect();
 }
 
 export {
