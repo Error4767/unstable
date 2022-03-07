@@ -2,8 +2,8 @@ import { isObject, setIdentify } from './utils.js';
 
 const READONLY_IDENTIFY = '__isReadonly';
 
-function isReadonly(obj) {
-  return obj[READONLY_IDENTIFY];
+function isReadonly(v) {
+  return isObject(v) ? (v[READONLY_IDENTIFY] ? true : false) : false;
 }
 
 function shallowReadonly(obj) {
