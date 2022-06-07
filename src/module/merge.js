@@ -4,7 +4,7 @@ export function merge(...objects) {
 	}
 	let merged = Object.create(objects[0].__proto__);
 	objects.forEach((v)=> {
-		if(v === null && typeof v !== 'object') {
+		if(v === null || typeof v !== 'object') {
 			return;
 		}
 		for(let key in v) {
