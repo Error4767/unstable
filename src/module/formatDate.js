@@ -2,7 +2,7 @@ export function formatDate(date, format) {
 	if(typeof format !== 'string') {
 		return;
 	}
-	if(!date instanceof Date) {
+	if(!(date instanceof Date)) {
 		return;
 	}
 	let o = {

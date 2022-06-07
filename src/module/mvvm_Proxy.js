@@ -234,7 +234,7 @@ function searchValFromAttrsArr(obj, attrChain, length = attrChain.length) {
   if(typeof attrChain !== 'object') {
     return returnValueOfcantFind;
   }else {
-    if(!attrChain instanceof Array) {
+    if(!(attrChain instanceof Array)) {
       return returnValueOfcantFind;
     }
   }
