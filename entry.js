@@ -50,6 +50,9 @@ export {
 	idlePriority,
 } from "./src/module/scheduler/scheduler.js";
 
+// parseq
+export { default as parseq } from "./src/module/parseq.js";
+
 export {
 	Stack,
 	Queue,
