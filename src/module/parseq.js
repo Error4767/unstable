@@ -281,5 +281,4 @@ export default ({
     any,
     allSettled,
     sequence,
-    sequenceName,
 });
