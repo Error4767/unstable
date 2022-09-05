@@ -3,9 +3,8 @@ import { setIdentify } from "./utils.js";
 import { watch } from './watch.js';
 
 import { ref } from './ref.js';
-import { Watcher } from './depend.js';
 
-const COMPUTED_IDENTIFY = "__isComputed";
+import { COMPUTED_IDENTIFY } from "./identifies.js";
 
 function computed(getter, options) {
   if (typeof getter === 'function') {

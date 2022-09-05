@@ -2,11 +2,7 @@ import { isObject, setIdentify, setMutableIdentify } from './utils.js';
 
 import { track, trigger } from './depend.js';
 
-// ref标识
-const REF_IDENTIFY = '__isRef';
-
-// 记忆标识
-const MEMOIZED_IDENTIFY = '__memoized';
+import { REF_IDENTIFY, MEMOIZED_IDENTIFY } from "./identifies.js";
 
 // 忘记上次计算的值，下次读取需重新计算
 function forget(ref) {

@@ -1,6 +1,6 @@
 import { isObject, setIdentify } from './utils.js';
 
-const READONLY_IDENTIFY = '__isReadonly';
+import { READONLY_IDENTIFY } from "./identifies.js";
 
 function isReadonly(v) {
   return isObject(v) ? (v[READONLY_IDENTIFY] ? true : false) : false;

@@ -15,7 +15,7 @@ import { isReadonly } from './readonly.js';
 
 import { isRef } from './ref.js';
 
-const REACTIVE_IDENTIFY = '__isReactive';
+import { REACTIVE_IDENTIFY } from "./identifies.js";
 
 function isReactive(obj) {
   return isObject(obj) ? (obj[REACTIVE_IDENTIFY] ? true : false) : false;
