@@ -1,3 +1,5 @@
+const sequenceName = Symbol("sequence");
+
 function createError(factoryName, excuse) {
     return new Error("parseq." + factoryName + (excuse ? (" excuse: " + excuse) : ""));
 }
@@ -66,7 +68,7 @@ function run(
                 // 回调给外面函数
                 callback(value, reason, thisRequestorIndex);
                 // 调用下一个请求器,如果并发数为1，就传入上次请求器的结果,(串行执行)
-                setTimeout(() => (concurrent === 1 ? startRequestor(value) : startRequestor(initialValue)), 0);
+                setTimeout(() => (functionName === sequenceName ? startRequestor(value) : startRequestor(initialValue)), 0);
             }, value);
         } catch (err) {
             callback(undefined, err, thisRequestorIndex);
@@ -125,7 +127,8 @@ function parallel(
                 }
                 // 所有都成功就返回所有的
                 if (restRequestorNumber < 1) {
-                    callback && callback(results);
+                    // 如果是序列，就返回最后的结果，如果不是序列，就返回结果数组
+                    callback && callback(functionName === sequenceName ? results[results.length - 1] : results);
                     callback = undefined;
                 }
             },
@@ -267,7 +270,7 @@ function allSettled(
 function sequence(
     requestorArray,
     timeLimit,
-    functionName = "squence",
+    functionName = sequenceName,
 ) {
     return parallel(requestorArray, timeLimit, 1, functionName);
 }
