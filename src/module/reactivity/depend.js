@@ -49,6 +49,10 @@ class Dep {
             effect(oldValue, newValue);
           }
         });
+        // 清理
+        waitUpdateEffectSet.clear();
+        updateInfosMap.clear();
+        
         waitUpdate = true;
       });
     }
