@@ -72,11 +72,11 @@ const depMaps = new WeakMap();
 function callGetters(dep, { oldValue, newValue } = {}) {
   // 是数组则遍历
   if (Array.isArray(dep)) {
-    return dep.forEach((v) => callGetters(v));
+    return dep.forEach((v) => callGetters(v, { oldValue, newValue }));
   }
   // 函数直接调用
   if (typeof dep === 'function') {
-    return dep();
+    return dep(oldValue, newValue);
   }
   // ref则读取value触发getter
   if (isRef(dep)) {
