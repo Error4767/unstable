@@ -16,6 +16,16 @@ const SPECIAL_ATTRIBUTES = [
   COMPUTED_IDENTIFY
 ];
 
+// 依赖使用 set 和 map，自动更新合并，更新 set 确保每个 effect 只被执行一次，map 用于关联一些其他信息
+
+// 更新集合
+const waitUpdateEffectSet = new Set();
+// 是否等待更新, true - 等待更新, false 更新中
+let waitUpdate = true;
+
+// 存放更新信息
+const updateInfosMap = new Map();
+
 class Dep {
   constructor() {
     // Set不会重复
@@ -25,13 +35,23 @@ class Dep {
     this.effects.add(effect);
   }
   notify(oldValue, newValue) {
-    this.effects.forEach(effect => {
-      runDepend(effect, effect.dep, { oldValue, newValue });
-      // 如果不相等，则依赖收集和作用分开执行，执行一次 effect
-      if (effect.dep !== effect) {
-        effect(oldValue, newValue);
-      }
-    });
+    // 添加到队列中等待执行
+    this.effects.forEach(effect => (waitUpdateEffectSet.add(effect), updateInfosMap.set(effect, { oldValue, newValue })));
+
+    if (waitUpdate) {
+      waitUpdate = false;
+      Promise.resolve().then(() => {
+        waitUpdateEffectSet.forEach(effect => {
+          const { oldValue, newValue } = updateInfosMap.get(effect);
+          runDepend(effect, effect.dep, { oldValue, newValue });
+          // 如果不相等，则依赖收集和作用分开执行，执行一次 effect
+          if (effect.dep !== effect) {
+            effect(oldValue, newValue);
+          }
+        });
+        waitUpdate = true;
+      });
+    }
   }
 }
 
