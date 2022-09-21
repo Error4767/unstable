@@ -18,6 +18,7 @@ export { formatDate } from './src/module/formatDate.js';
 export { once } from './src/module/once.js';
 export { typeOf } from './src/module/typeOf.js';
 export { isObject } from './src/module/isObject.js';
+export { replaceRight } from './src/module/stringOperations.js';
 
 export { createElement } from "./src/module/createElement.js";
 
