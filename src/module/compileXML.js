@@ -200,7 +200,7 @@ function parseToNode(tokens) {
         } else {
           tag.type = 'Fragment';
         }
-        isEndTag ? tag.value = 'end' : tag.value = 'start';
+        isEndTag ? (tag.value = 'end') : (tag.value = 'start');
       } else {
         tag.type = 'Fragment';
         tag.value = 'start';
@@ -219,7 +219,7 @@ function parseToNode(tokens) {
       }
 
       // 如果是自闭合标签就删除所有的/
-      isAutoClosureTag(tag.nodeName) ? tag.props = tag.props.filter(v => v.value !== '/') : null;
+      isAutoClosureTag(tag.nodeName) ? (tag.props = tag.props.filter(v => v.value !== '/')) : null;
 
       // 如果是无法识别的标签添加了结束符号/，则视为自定义节点单标签
       if (tag.props[tag.props.length - 1] && tag.props[tag.props.length - 1].value === '/') {

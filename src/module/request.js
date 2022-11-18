@@ -76,10 +76,10 @@ class Request {
 					var xhr = new ActiveXObject();
 				}
 				//是否发送cookie
-				withCredentials ? xhr.withCredentials = true : null;
+				withCredentials && (xhr.withCredentials = true);
 
 				//设置返回数据类型
-				responseType ? xhr.responseType = responseType : null;
+				responseType && (xhr.responseType = responseType);
 
 				//请求回调
 				xhr.addEventListener('readystatechange', () => {
