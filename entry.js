@@ -54,6 +54,8 @@ export {
 // parseq
 export { default as parseq } from "./src/module/parseq.js";
 
+export { getSizeString } from "./src/module/getSizeString.js";
+
 export {
 	Stack,
 	Queue,
