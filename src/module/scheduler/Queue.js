@@ -1,31 +1,51 @@
-// 使用 map 是因为 object 的删除性能过低,map 的删除性能好, 并且 map 自带 size 属性
 export class Queue {
     constructor() {
-        this.headIndex = 0;
-        this.tailIndex = 0;
-        this.queue = new Map();
-    }
-    front() {
-        return this.queue.get(this.headIndex);
+        this.head = undefined;
+        this.tail = undefined;
+        this.length = 0;
     }
     enqueue(item) {
-        // 向队尾添加项目
-        return this.queue.set(this.tailIndex++, item);
+        // 如果没有 tail，队列为空
+        if(this.tail) {
+            // 有，则向队尾添加项目
+            const queueItem = { value: item, prev: this.tail, next: undefined };
+            this.tail.next = queueItem;
+            this.tail = queueItem;
+        }else {
+            const queueItem = { value: item, prev: undefined, next: undefined };
+            this.head = queueItem;
+            this.tail = queueItem;
+        }
+        this.length += 1;
     }
     dequeue() {
-        if (this.isEmpty()) {
+        const length = this.length;
+        if (length === 0) {
             return;
         }
-        // 从队首取出项目
-        let item = this.front();
-        // 删除队首项目
-        this.queue.delete(this.headIndex++)
-        return item;
-    }
-    isEmpty() {
-        return this.queue.size <= 0;
+        // 取出项目
+        const item = this.head;
+
+        // 长度为1，那么首尾是相同的
+        if(length === 1) {
+            this.head = undefined;
+            this.tail = undefined;
+        } else {
+            // 大于1了，则正常动作
+            const nextItem = item.next;
+            // 设置下一项的上一项为 undefined
+            nextItem.prev = undefined;
+            this.head = nextItem;
+        }
+
+        this.length -= 1;
+
+        // 以防万一，清除引用
+        item.next = undefined;
+
+        return item.value;
     }
     size() {
-        return this.queue.size;
+        return this.length;
     }
 }
