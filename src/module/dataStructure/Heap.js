@@ -21,16 +21,16 @@ export class Heap {
             this.heap.push(item);
             const newItemIndex = this.heap.length - 1;
             const parentIndex = Math.floor((newItemIndex - 1) / 2);
-            this.heapify(parentIndex, "top");
+            this._heapify(parentIndex, "top");
         }
     }
     // 交换节点
-    swap(i, i2) {
+    _swap(i, i2) {
         let iValue = this.heap[i];
         this.heap[i] = this.heap[i2];
         this.heap[i2] = iValue;
     }
-    heapify(index, mode /* string: "top" | "bottom" */) {
+    _heapify(index, mode /* string: "top" | "bottom" */) {
         // 调整节点
         // 最大值节点的索引
         let largestItemIndex = index;
@@ -49,28 +49,28 @@ export class Heap {
             largestItemIndex = rightChildIndex;
         }
         if (largestItemIndex !== index) {
-            this.swap(largestItemIndex, index);
+            this._swap(largestItemIndex, index);
             // 调整堆
             if (mode === "top") {
                 // 自下向上
                 if (index !== 0) {
-                    this.heapify(Math.floor((index - 1) / 2), mode);
+                    this._heapify(Math.floor((index - 1) / 2), mode);
                 }
             } else if (mode === "bottom") {
                 // 自上向下
                 // 因为已经交换位置，所以此处 largest 是被交换的子节点的位置
-                this.heapify(largestItemIndex, mode);
+                this._heapify(largestItemIndex, mode);
             }
         }
     }
     pop() {
         const heap = this.heap;
         // 首位交换
-        this.swap(0, heap.length - 1);
+        this._swap(0, heap.length - 1);
         // 取出节点
         let item = this.heap.pop();
         // 保持堆的性质
-        this.heapify(0, "bottom");
+        this._heapify(0, "bottom");
         return item;
     }
 }

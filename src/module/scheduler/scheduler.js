@@ -1,5 +1,5 @@
-import { Heap } from "./Heap.js";
-import { Queue } from "./Queue.js";
+import { Heap } from "../dataStructure/Heap.js";
+import { Queue } from "../dataStructure/Queue.js";
 
 // 优先级
 const immediatePriority = 1;

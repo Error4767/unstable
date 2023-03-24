@@ -56,15 +56,18 @@ export { default as parseq } from "./src/module/parseq.js";
 
 export { getSizeString } from "./src/module/getSizeString.js";
 
+export { Queue } from "./src/module/dataStructure/Queue.js";
+export { Heap } from "./src/module/dataStructure/Heap.js";
+
+export { RedBlackTree } from "./src/module/dataStructure/RedBlackTree.js";
+
 export {
 	Stack,
-	Queue,
 	PriorityQueue,
 	LinkedList,
 	DoublyLinkedList,
 	HashTable,
 	Set,
 	BinarySearchTree,
-	RedBlackTree,
 	Graph
 } from './src/module/dataStructure.js';
