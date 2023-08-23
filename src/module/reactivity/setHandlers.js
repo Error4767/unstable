@@ -11,7 +11,10 @@ const setOtherMethodNames = [
   "entries"
 ];
 
-export function createProxySetGetter(transform = v => v) {
+export function createProxySetGetter({
+  setterTransform = v => v,
+  getterTransform = v => v,
+} = {}) {
   let setMethods = {
     add(value) {
       setPrototype.add.call(this, value);
@@ -75,6 +78,6 @@ export function createProxySetGetter(transform = v => v) {
         return target[key].bind(target);
       }
     }
-    return proxyGetter(target, key);
+    return proxyGetter(target, key, getterTransform);
   }
 }

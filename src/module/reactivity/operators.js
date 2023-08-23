@@ -13,11 +13,11 @@ const excludeMethods = ["at"];
 const arrayMethodNames = Reflect.ownKeys(Array.prototype)
   .filter(key => typeof Array.prototype[key] === "function" && !excludeMethods.includes(key));
 
-// proxy getter
-function proxyGetter(target, key) {
+// proxy getter, transform 是转换 value 的方法
+function proxyGetter(target, key, transform = v => v) {
   track(target, key);
   // 获得value
-  let value = getValue(Reflect.get(target, key));
+  let value = getValue(transform(Reflect.get(target, key)));
   // 获取的是受支持的数组方法
   if (Array.isArray(target) && typeof value === "function" && arrayMethodNames.includes(key)) {
     // 返回带有依赖收集的版本

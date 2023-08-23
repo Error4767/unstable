@@ -15,7 +15,10 @@ let mapOtherMethodNames = [
 ];
 
 // proxy map handler getter
-function createProxyMapGetter(transform = v => v) {
+function createProxyMapGetter({
+  setterTransform = v => v,
+  getterTransform = v => v,
+} = {}) {
   const mapMethods = {
     get(key) {
       const value = mapPrototype.get.call(this, key);
@@ -26,7 +29,7 @@ function createProxyMapGetter(transform = v => v) {
       let oldValue = mapPrototype.get.call(this, key);
       // todo
       if (oldValue !== value) {
-        const newValue = transform(value);
+        const newValue = setterTransform(value);
 
         // 是ref设置其value，不是ref直接设置其值
         const operationState = isRef(oldValue) ? Reflect.set(oldValue, 'value', newValue) : mapPrototype.set.call(this, key, value);
@@ -101,7 +104,7 @@ function createProxyMapGetter(transform = v => v) {
     }
 
     // 如果是普通的属性读取，就使用一般对象的getter
-    return proxyGetter(target, key);
+    return proxyGetter(target, key, getterTransform);
   }
 }
 
