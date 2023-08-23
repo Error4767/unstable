@@ -38,7 +38,7 @@ class Dep {
 
     if (waitUpdate) {
       waitUpdate = false;
-      Promise.resolve().then(() => {
+      // Promise.resolve().then(() => {
         waitUpdateEffectSet.forEach(effect => {
           const { oldValue, newValue } = updateInfosMap.get(effect);
           runDepend(effect, effect.dep, { oldValue, newValue });
@@ -52,7 +52,7 @@ class Dep {
         updateInfosMap.clear();
         
         waitUpdate = true;
-      });
+      // });
     }
   }
 }
