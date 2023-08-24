@@ -91,11 +91,16 @@ function toRefs(rawObject) {
   return refsObject;
 }
 
+function unref(target) {
+  return isRef(target) ? target.value : target;
+}
+
 export {
   REF_IDENTIFY,
   MEMOIZED_IDENTIFY,
   ref,
   isRef,
   toRef,
-  toRefs
+  toRefs,
+  unref,
 }

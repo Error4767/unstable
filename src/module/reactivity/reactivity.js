@@ -1,4 +1,4 @@
-export { ref, isRef, toRef, toRefs } from './ref.js';
+export { ref, isRef, toRef, toRefs, unref } from './ref.js';
 
 export {
   reactive,
