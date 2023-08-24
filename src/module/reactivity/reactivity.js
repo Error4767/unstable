@@ -4,6 +4,8 @@ export {
   reactive,
   shallowReactive,
   isReactive,
+  toRaw,
+  markRaw,
 } from './reactive.js';
 
 export { readonly, shallowReadonly, isReadonly } from './readonly.js';

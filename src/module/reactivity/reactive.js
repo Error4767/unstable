@@ -15,6 +15,8 @@ import { isReadonly } from './readonly.js';
 
 import { isRef } from './ref.js';
 
+import { RAW_IDENTIFY, KEEP_RAW_IDENTIFY } from "./identifies.js";
+
 function isReactive(obj) {
   return isObject(obj) ? (isReactiveMap.get(obj) ? true : false) : false;
 }
@@ -41,7 +43,11 @@ function createHandler(
 // 如果不可转换，返回原始对象，否则返回反应式对象
 function createGetterTransform(isShallow) {
   // 不可转化对象或者浅层反应式，就返回原始
-  return (obj)=> {
+  return (obj, { target, key })=> {
+    // 获取原始对象
+    if(key === RAW_IDENTIFY) {
+      return target;
+    }
     return (isTransformableToReactive(obj) && !isShallow) ? createReactiveObject(obj) : obj;
   };
 }
@@ -59,7 +65,7 @@ const proxySetHandlersShallow = createHandler("Set", createGetterTransform(true)
 // 判断是否可以转化为响应式对象
 function isTransformableToReactive(obj) {
   // 特殊对象或者不是对象直接返回
-  if (!isObject(obj) || isReactive(obj) || isRef(obj) || isReadonly(obj)) {
+  if (!isObject(obj) || isReactive(obj) || isRef(obj) || isReadonly(obj) || obj[KEEP_RAW_IDENTIFY]) {
     return false;
   }
   return true;
@@ -109,8 +115,18 @@ function reactive(obj) {
   return createReactiveObject(obj);
 }
 
+function toRaw(reactiveObj) {
+  return reactiveObj?.[RAW_IDENTIFY];
+}
+function markRaw(obj) {
+  isObject(obj) && (obj[KEEP_RAW_IDENTIFY] = true);
+  return obj;
+}
+
 export {
   reactive,
   shallowReactive,
   isReactive,
+  toRaw,
+  markRaw,
 }

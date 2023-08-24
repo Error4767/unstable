@@ -3,7 +3,8 @@ import {
   REF_IDENTIFY,
   MEMOIZED_IDENTIFY,
   COMPUTED_IDENTIFY,
-  READONLY_IDENTIFY
+  READONLY_IDENTIFY,
+  KEEP_RAW_IDENTIFY,
 } from "./identifies.js";
 import { isRef } from './ref.js';
 
@@ -11,7 +12,8 @@ const SPECIAL_ATTRIBUTES = [
   REF_IDENTIFY,
   MEMOIZED_IDENTIFY,
   READONLY_IDENTIFY,
-  COMPUTED_IDENTIFY
+  COMPUTED_IDENTIFY,
+  KEEP_RAW_IDENTIFY,
 ];
 
 // 依赖使用 set 和 map，自动更新合并，更新 set 确保每个 effect 只被执行一次，map 用于关联一些其他信息

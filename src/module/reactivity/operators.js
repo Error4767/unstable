@@ -17,7 +17,7 @@ const arrayMethodNames = Reflect.ownKeys(Array.prototype)
 function proxyGetter(target, key, transform = v => v) {
   track(target, key);
   // 获得value
-  let value = getValue(transform(Reflect.get(target, key)));
+  let value = getValue(transform(Reflect.get(target, key), { target, key }));
   // 获取的是受支持的数组方法
   if (Array.isArray(target) && typeof value === "function" && arrayMethodNames.includes(key)) {
     // 返回带有依赖收集的版本
