@@ -4,6 +4,8 @@ import { track, trigger } from './depend.js';
 
 import { REF_IDENTIFY, MEMOIZED_IDENTIFY } from "./identifies.js";
 
+import { reactive } from "./reactive.js";
+
 // 忘记上次计算的值，下次读取需重新计算
 function forget(ref) {
   ref[MEMOIZED_IDENTIFY] = false;
@@ -24,7 +26,8 @@ function ref(rawValue, getter) {
     return rawValue;
   }
 
-  let value = rawValue;
+  // 如果是对象使用 reactive 包裹
+  let value = isObject(rawValue) ? reactive(rawValue) : rawValue;
 
   const refObject = {
     get value() {
@@ -39,7 +42,8 @@ function ref(rawValue, getter) {
     set value(newValue) {
       if (value !== newValue /* 值改变了才需trigger */ && !getter /* getter不可直接设置值 */) {
         trigger(this, 'value', value, newValue);
-        value = newValue;
+        // 如果是对象使用 reactive 包裹
+        value = isObject(newValue) ? reactive(newValue) : newValue;
         return true;
       }
       return false;
