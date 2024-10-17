@@ -21,6 +21,11 @@ class Promise {
     }
   }
   resolve(result) {
+    // resolve 的是一个 Promise, 尝试resolve这个
+    if(result instanceof Promise) {
+      Promise.resolvePromise(undefined, result, this.resolve, this.reject);
+      return;
+    }
     if (this.status === PENDING) {
       setTimeout(() => {
         this.result = result;
@@ -265,6 +270,15 @@ class Promise {
       reject,
     };
   }
+  static try(func) {
+    return new this((resolve, reject) => {
+      try {
+        resolve(func());
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
 }
 
 export { Promise };
