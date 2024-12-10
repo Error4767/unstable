@@ -71,3 +71,8 @@ export {
 	BinarySearchTree,
 	Graph
 } from './src/module/dataStructure.js';
+
+export { 
+	filterNumberInput,
+	onChangeToNumber,
+} from "./src/module/formUtils.js";
